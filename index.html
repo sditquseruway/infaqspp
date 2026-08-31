@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Aplikasi SPP Yayasan</title>
+    <title>Aplikasi Infaq Santri</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- PapaParse for CSV parsing -->
@@ -31,8 +31,6 @@
         .tab-active { background-color: #facc15 !important; color: #14532d !important; font-weight: bold; }
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* Modal Animation */
         .modal-open { animation: zoomIn 0.3s ease-out forwards; }
         @keyframes zoomIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
     </style>
@@ -47,7 +45,7 @@
                     <img src="https://i.ibb.co.com/W49zb9n3/logo-yayasan-Terbaru.png" alt="Logo" class="h-10 w-10 object-contain">
                 </div>
                 <div>
-                    <h1 class="text-xl sm:text-2xl font-bold text-white tracking-wide leading-tight">SI-SPP <span class="text-yyellow-400">Yayasan</span></h1>
+                    <h1 class="text-xl sm:text-2xl font-bold text-white tracking-wide leading-tight">SI <span class="text-yyellow-400">Infaq Santri</span></h1>
                     <p class="text-ygreen-100 text-xs sm:text-sm hidden sm:block">Sistem Informasi Pembayaran & Tunggakan</p>
                 </div>
             </div>
@@ -61,7 +59,7 @@
     <div id="global-loader" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center">
         <i class="fas fa-spinner fa-spin fa-4x text-ygreen-600 mb-4"></i>
         <h2 class="text-xl font-bold text-ygreen-800">Memuat Database...</h2>
-        <p class="text-gray-500 mt-2">Menyinkronkan data Tunggakan & Pembayaran</p>
+        <p class="text-gray-500 mt-2 text-center px-4">Menyinkronkan data Tunggakan & Pembayaran Infaq</p>
     </div>
 
     <!-- Main Content -->
@@ -74,7 +72,7 @@
                     <i class="fas fa-file-invoice-dollar text-red-500 text-2xl"></i>
                 </div>
                 <div>
-                    <p class="text-sm text-gray-500 font-semibold uppercase tracking-wider">Total Tunggakan Keseluruhan</p>
+                    <p class="text-sm text-gray-500 font-semibold uppercase tracking-wider">Total Tunggakan Yayasan</p>
                     <h3 class="text-2xl font-bold text-gray-800" id="recap-total-tunggakan">Rp 0</h3>
                 </div>
             </div>
@@ -102,12 +100,27 @@
         <!-- SECTION: TUNGGAKAN SISWA -->
         <section id="view-tunggakan" class="fade-in block">
             <div class="bg-white rounded-xl shadow-md border-t-4 border-ygreen-600 overflow-hidden">
+                <!-- Toolbar Tunggakan -->
+                <div class="p-4 border-b border-gray-100 bg-gray-50 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div class="flex items-center space-x-2 w-full sm:w-auto">
+                        <label for="filter-kelas" class="font-semibold text-gray-700 hidden sm:block">Filter:</label>
+                        <select id="filter-kelas" class="w-full sm:w-auto border border-gray-300 text-gray-700 rounded-lg p-2.5 focus:ring-ygreen-500 focus:border-ygreen-500 outline-none shadow-sm bg-white font-medium">
+                            <option value="ALL">Semua Kelas</option>
+                            <!-- Diisi oleh JS -->
+                        </select>
+                    </div>
+                    <button onclick="copyClassReport()" class="w-full sm:w-auto bg-yyellow-400 hover:bg-yyellow-500 text-ygreen-900 px-4 py-2.5 rounded-lg font-bold shadow-sm transition-all flex items-center justify-center">
+                        <i class="fas fa-copy mr-2"></i> Copy Laporan
+                    </button>
+                </div>
+                
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-ygreen-700 text-white text-sm uppercase tracking-wider">
                                 <th class="px-4 py-3 border-b border-ygreen-800 text-center w-12">No</th>
                                 <th class="px-4 py-3 border-b border-ygreen-800">Nama Santri</th>
+                                <th class="px-4 py-3 border-b border-ygreen-800 text-center">Kelas</th>
                                 <th class="px-4 py-3 border-b border-ygreen-800 text-right">Total Tunggakan</th>
                                 <th class="px-4 py-3 border-b border-ygreen-800 text-center">Aksi</th>
                             </tr>
@@ -163,13 +176,10 @@
     <!-- Modal Popup Detail Siswa -->
     <div id="modal-detail" class="fixed inset-0 bg-gray-900 bg-opacity-60 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden modal-open">
-            <!-- Modal Header -->
             <div class="bg-ygreen-700 px-6 py-4 flex justify-between items-center text-white">
                 <h3 class="font-bold text-lg flex items-center"><i class="fas fa-user-graduate mr-2 text-yyellow-400"></i> <span id="modal-nama">-</span></h3>
                 <button onclick="closeModal()" class="text-white hover:text-yyellow-300 transition text-2xl focus:outline-none">&times;</button>
             </div>
-            
-            <!-- Modal Body -->
             <div class="p-6 overflow-y-auto flex-grow bg-gray-50">
                 <div class="grid grid-cols-2 gap-4 mb-6">
                     <div class="bg-green-100 p-4 rounded-lg border border-green-200 text-center">
@@ -181,9 +191,7 @@
                         <p class="text-lg font-extrabold text-red-800 mt-1" id="modal-tunggakan">Rp 0</p>
                     </div>
                 </div>
-
                 <h4 class="font-bold text-gray-700 mb-3 border-b-2 border-ygreen-200 pb-2"><i class="fas fa-history mr-1"></i> Rincian Pembayaran</h4>
-                
                 <div class="overflow-x-auto rounded-lg border border-gray-200">
                     <table class="w-full text-left text-sm">
                         <thead class="bg-gray-100 text-gray-600">
@@ -200,12 +208,15 @@
                     </table>
                 </div>
             </div>
-            
-            <!-- Modal Footer -->
             <div class="border-t border-gray-200 p-4 bg-white flex justify-end">
                 <button onclick="closeModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-6 rounded-lg transition">Tutup</button>
             </div>
         </div>
+    </div>
+
+    <!-- Toast Notification (Custom Alert) -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-ygreen-800 text-white px-6 py-3 rounded-lg shadow-xl transform transition-transform translate-y-20 opacity-0 z-50 pointer-events-none flex items-center">
+        <i class="fas fa-check-circle mr-2 text-yyellow-400"></i> <span id="toast-msg" class="font-medium">Notifikasi</span>
     </div>
 
     <!-- Scripts -->
@@ -214,39 +225,27 @@
         const URL_TUNGGAKAN = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRR3UGAaAu88VLk17PoUu_6h3bUmT3O4usNKDqxHGSGly8tCQYjM6gQCe1GXFD6jc3lOTvvhOH0ilto/pub?gid=917422507&single=true&output=csv";
         const URL_PEMBAYARAN = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRR3UGAaAu88VLk17PoUu_6h3bUmT3O4usNKDqxHGSGly8tCQYjM6gQCe1GXFD6jc3lOTvvhOH0ilto/pub?gid=280283648&single=true&output=csv";
 
-        // Global Data Stores
         let dataTunggakan = [];
         let dataPembayaran = [];
-        let totalTunggakanYayasan = 0;
-        let totalSiswaMenunggak = 0;
 
-        // PWA Setup Script (Generated dynamically in single file)
+        // PWA Setup Script
         function setupPWA() {
             try {
                 const manifest = {
-                    "name": "Aplikasi SPP Yayasan",
-                    "short_name": "SPP Yayasan",
+                    "name": "Aplikasi Infaq Santri",
+                    "short_name": "Infaq Santri",
                     "start_url": ".",
                     "display": "standalone",
                     "background_color": "#ffffff",
                     "theme_color": "#16a34a",
                     "icons": [{"src": "https://i.ibb.co.com/W49zb9n3/logo-yayasan-Terbaru.png", "sizes": "192x192", "type": "image/png"}]
                 };
-                
-                // Menggunakan Data URI yang lebih aman untuk disuntikkan daripada Blob URL
                 const manifestString = JSON.stringify(manifest);
                 const manifestUrl = 'data:application/json;charset=utf-8,' + encodeURIComponent(manifestString);
                 document.querySelector('head').insertAdjacentHTML('beforeend', `<link rel="manifest" href="${manifestUrl}">`);
-
-                // Catatan: Service Worker tidak di-register karena browser memblokir protokol 'blob:'
-                // Jika ingin aplikasi berfungsi offline penuh (PWA sejati), Anda harus meng-host file 'sw.js' secara fisik.
-                console.log('PWA manifest injected. Service worker skipped due to single-file restrictions.');
-            } catch(e) { 
-                console.log('PWA setup skipped in this environment.', e); 
-            }
+            } catch(e) { console.log('PWA skipped', e); }
         }
 
-        // Install Prompt Logic
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
@@ -262,18 +261,19 @@
             }
         });
 
-        // Initialize Data on Load
+        // Event Listeners
         document.addEventListener('DOMContentLoaded', async () => {
             setupPWA();
             await fetchAllData();
             processRecap();
+            populateKelasFilter();
             renderTunggakanTable();
             
             document.getElementById('global-loader').classList.add('hidden');
             document.getElementById('main-content').classList.remove('hidden');
             document.getElementById('no-data-cari').classList.remove('hidden');
 
-            // Search Event listener (Trigger at 3 chars)
+            // Search input Listener
             document.getElementById('input-cari').addEventListener('input', function(e) {
                 const query = e.target.value.trim();
                 if(query.length >= 3) {
@@ -283,9 +283,13 @@
                     document.getElementById('no-data-cari').classList.remove('hidden');
                 }
             });
+
+            // Filter Kelas Listener
+            document.getElementById('filter-kelas').addEventListener('change', function() {
+                renderTunggakanTable();
+            });
         });
 
-        // Helper: Fetch CSV via Promise
         async function fetchCsv(url) {
             try {
                 const res = await fetch(url);
@@ -293,10 +297,7 @@
                 return new Promise((resolve) => {
                     Papa.parse(text, { header: true, skipEmptyLines: true, complete: result => resolve(result.data) });
                 });
-            } catch(e) {
-                console.error("Error fetching", url, e);
-                return [];
-            }
+            } catch(e) { return []; }
         }
 
         async function fetchAllData() {
@@ -305,35 +306,45 @@
             dataPembayaran = bayarRes;
         }
 
-        // Helpers for formatting and parsing
         function formatRupiah(num) {
             return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num || 0);
         }
+
         function parseNumeric(str) {
             if(!str) return 0;
-            return parseInt(String(str).replace(/[^\d]/g, ''), 10) || 0;
+            let numStr = String(str).replace(/[^\d-]/g, ''); // pertahankan digit dan minus
+            return parseInt(numStr, 10) || 0;
         }
+
         function getColValue(rowObj, possibleNames) {
             const keys = Object.keys(rowObj);
             for (let name of possibleNames) {
-                const found = keys.find(k => k.trim().toLowerCase().includes(name.toLowerCase()));
+                const found = keys.find(k => k.trim().toLowerCase() === name.toLowerCase() || k.trim().toLowerCase().includes(name.toLowerCase()));
                 if (found && rowObj[found]) return rowObj[found];
             }
             return "";
         }
+
         function getCleanName(rowObj) {
-            return getColValue(rowObj, ["Nama Santri", "Nama Siswa", "Nama"]).trim();
+            return getColValue(rowObj, ["NAMA SANTRI 2026", "Nama Santri", "Nama Siswa", "Nama"]).trim();
         }
 
-        // --- Fitur Rekap Laporan ---
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
+        }
+
         function processRecap() {
-            totalTunggakanYayasan = 0;
-            totalSiswaMenunggak = 0;
+            let totalTunggakanYayasan = 0;
+            let totalSiswaMenunggak = 0;
             
             dataTunggakan.forEach(row => {
                 const nama = getCleanName(row);
                 const tunggakan = parseNumeric(getColValue(row, ["TOTAL TUNGGAKAN", "Tunggakan"]));
-                if(nama && tunggakan > 0) {
+                // Hanya akumulasi yang > 0 (tidak minus dan tidak nol)
+                if(nama && tunggakan > 0) { 
                     totalTunggakanYayasan += tunggakan;
                     totalSiswaMenunggak++;
                 }
@@ -343,7 +354,6 @@
             document.getElementById('recap-jumlah-siswa').innerText = totalSiswaMenunggak;
         }
 
-        // --- UI Tab Switching ---
         function switchTab(tabName) {
             const views = { cari: document.getElementById('view-cari'), tunggakan: document.getElementById('view-tunggakan') };
             const tabs = { cari: document.getElementById('tab-cari'), tunggakan: document.getElementById('tab-tunggakan') };
@@ -360,40 +370,67 @@
             });
         }
 
-        // --- Fitur Tunggakan ---
+        function populateKelasFilter() {
+            const kelasSet = new Set();
+            dataTunggakan.forEach(row => {
+                const tunggakan = parseNumeric(getColValue(row, ["TOTAL TUNGGAKAN", "Tunggakan"]));
+                if (tunggakan > 0) { // Hanya ambil kelas yang memiliki siswa nunggak
+                    const kelas = getColValue(row, ["Kelas", "Jenjang"]);
+                    if(kelas) kelasSet.add(kelas.trim());
+                }
+            });
+
+            const filterEl = document.getElementById('filter-kelas');
+            filterEl.innerHTML = '<option value="ALL">Semua Kelas</option>';
+            Array.from(kelasSet).sort().forEach(k => {
+                const opt = document.createElement('option');
+                opt.value = k;
+                opt.textContent = `Kelas ${k}`;
+                filterEl.appendChild(opt);
+            });
+        }
+
         function renderTunggakanTable() {
             const tbody = document.getElementById('tbody-tunggakan');
             tbody.innerHTML = "";
+            const selectedKelas = document.getElementById('filter-kelas').value;
 
             let validData = dataTunggakan.map(row => {
                 return {
                     nama: getCleanName(row),
+                    kelas: getColValue(row, ["Kelas", "Jenjang"]).trim(),
                     totalTunggakan: parseNumeric(getColValue(row, ["TOTAL TUNGGAKAN"])),
                     rawRow: row 
                 };
-            }).filter(item => item.nama && item.totalTunggakan > 0);
+            }).filter(item => {
+                // Filter: Nama ada, Tunggakan harus lebih besar dari 0 (hilangkan 0 dan minus)
+                if(!item.nama || item.totalTunggakan <= 0) return false;
+                // Filter Kelas
+                if(selectedKelas !== 'ALL' && item.kelas !== selectedKelas) return false;
+                return true;
+            });
 
             // Sort by tunggakan terbesar
             validData.sort((a, b) => b.totalTunggakan - a.totalTunggakan);
 
             if(validData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-gray-500">Alhamdulillah, tidak ada siswa yang menunggak.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-500">Alhamdulillah, tidak ada santri yang menunggak di daftar ini.</td></tr>`;
             } else {
                 validData.forEach((item, index) => {
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-green-50 border-b border-gray-100";
                     
-                    // Generate Custom WA Link
                     let phone = getColValue(item.rawRow, ["Nomor Hape", "No HP", "Telepon"]);
                     let waBtn = `<button disabled class="bg-gray-300 text-gray-500 px-3 py-1.5 rounded-md text-xs font-bold w-full cursor-not-allowed">No HP (-)</button>`;
                     
                     if(phone) {
-                        phone = phone.replace(/\D/g, ''); // bersihkan text jadi angka saja
-                        if(phone.startsWith('0')) phone = '62' + phone.substring(1); // Format ke 62
+                        phone = phone.replace(/\D/g, ''); 
+                        if(phone.startsWith('0')) phone = '62' + phone.substring(1); 
                         
-                        // Hitung total bayar dinamis dari data pembayaran
                         const totalBayar = getStudentTotalBayar(item.nama);
-                        const msg = `Assalamualaikum warahmatullahi wabarakatuh\nmohon maaf mengganggu waktunya kami sampaikan rincian pembayaran santri atas nama : *${item.nama}*\nsudah bayar : *${formatRupiah(totalBayar)}*\nTunggakan nya adalah : *${formatRupiah(item.totalTunggakan)}*\n\nmohon dapat membayar langsung ke bendahara yayasan\n\nterimakasih wassalamualaikum`;
+                        // Official Polite WA Message
+                        const msg = `Assalamualaikum Warahmatullahi Wabarakatuh.\n\nMohon maaf mengganggu waktunya, Ayah/Bunda. Bersama pesan ini, kami ingin menyampaikan informasi rincian infaq/SPP ananda *${item.nama}*.\n\nBerikut adalah rincian pembayarannya:\n- Total Infaq Terbayar: *${formatRupiah(totalBayar)}*\n- Total Tunggakan Infaq: *${formatRupiah(item.totalTunggakan)}*\n\nKami memohon kerja sama Ayah/Bunda untuk dapat menyelesaikan tunggakan tersebut melalui Bendahara Yayasan, agar kegiatan operasional dan pendidikan santri dapat berjalan dengan lancar.\n\nAtas perhatian dan kerja samanya, kami ucapkan jazakumullah khairan katsiran.\n\nWassalamualaikum Warahmatullahi Wabarakatuh.`;
+                        
                         const waLink = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
                         
                         waBtn = `<a href="${waLink}" target="_blank" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-md text-xs font-bold shadow-sm flex items-center justify-center transition-all w-full sm:w-auto mx-auto max-w-[140px]">
@@ -401,12 +438,12 @@
                                  </a>`;
                     }
 
-                    // Kolom Nama bisa di klik
                     tr.innerHTML = `
                         <td class="px-4 py-3 text-center">${index + 1}</td>
                         <td class="px-4 py-3 font-semibold text-ygreen-700 hover:text-yyellow-500 cursor-pointer underline decoration-dotted transition-colors" onclick="openModal('${item.nama.replace(/'/g, "\\'")}')">
                             ${item.nama}
                         </td>
+                        <td class="px-4 py-3 text-center text-gray-600 text-sm">${item.kelas || '-'}</td>
                         <td class="px-4 py-3 text-right font-bold text-red-600">${formatRupiah(item.totalTunggakan)}</td>
                         <td class="px-4 py-3 align-middle">${waBtn}</td>
                     `;
@@ -415,7 +452,6 @@
             }
         }
 
-        // --- Fitur Cari Pembayaran ---
         function executeSearch(query) {
             document.getElementById('no-data-cari').classList.add('hidden');
             document.getElementById('result-cari').classList.remove('hidden');
@@ -431,7 +467,8 @@
                     matchCount++;
                     const tglBayar = getColValue(row, ["Tanggal", "Tgl"]);
                     const bulan = getColValue(row, ["Bulan", "Keterangan"]);
-                    const jumlah = parseNumeric(getColValue(row, ["Jumlah", "Nominal", "Bayar", "Total"]));
+                    // Update: Mengambil tepat di kolom PEMBAYARAN
+                    const jumlah = parseNumeric(getColValue(row, ["PEMBAYARAN", "Jumlah", "Nominal", "Bayar"]));
 
                     const tr = document.createElement('tr');
                     tr.className = "hover:bg-yellow-50 border-b border-gray-100";
@@ -451,21 +488,69 @@
             if(matchCount === 0) {
                 document.getElementById('result-cari').classList.add('hidden');
                 document.getElementById('no-data-cari').classList.remove('hidden');
-                document.getElementById('no-data-cari').innerHTML = `
-                    <i class="fas fa-folder-open text-4xl text-gray-300 mb-3"></i>
-                    <h3 class="text-lg font-bold text-gray-600">Siswa tidak ditemukan</h3>
-                    <p class="text-gray-400 text-sm">Pastikan ejaan nama sudah benar.</p>
-                `;
             }
         }
 
-        // --- Modal & Detail Helper ---
+        function copyClassReport() {
+            const selectedKelas = document.getElementById('filter-kelas').value;
+            
+            let filteredData = dataTunggakan.map(row => {
+                return {
+                    nama: getCleanName(row),
+                    kelas: getColValue(row, ["Kelas", "Jenjang"]).trim(),
+                    totalTunggakan: parseNumeric(getColValue(row, ["TOTAL TUNGGAKAN", "Tunggakan"]))
+                };
+            }).filter(item => item.nama && item.totalTunggakan > 0);
+
+            let classNameLabel = "Semua Santri";
+            if(selectedKelas !== 'ALL') {
+                filteredData = filteredData.filter(item => item.kelas === selectedKelas);
+                classNameLabel = selectedKelas;
+            }
+
+            if(filteredData.length === 0) {
+                showToast("Tidak ada data tunggakan untuk disalin.");
+                return;
+            }
+
+            filteredData.sort((a, b) => b.totalTunggakan - a.totalTunggakan);
+
+            let text = `Assalamualaikum Warahmatullahi Wabarakatuh.\n\nBerikut kami sampaikan nama santri kelas *${classNameLabel}* yang memiliki tunggakan pada bulan ini:\n\n`;
+            
+            let total = 0;
+            filteredData.forEach((item, idx) => {
+                text += `${idx + 1}. ${item.nama} - ${formatRupiah(item.totalTunggakan)}\n`;
+                total += item.totalTunggakan;
+            });
+
+            text += `\n*Total Tunggakan Kelas ${classNameLabel} : ${formatRupiah(total)}*\n\n`;
+            text += `Kami harap kepada orang tua/wali santri agar dapat membayar infaq/SPP tepat waktu agar kegiatan operasional dan pendidikan santri berjalan dengan lancar tanpa kendala.\n\nAtas perhatian dan kerja samanya, kami ucapkan terima kasih.\nWassalamualaikum Warahmatullahi Wabarakatuh.`;
+
+            // Proses Copy ke Clipboard
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.setAttribute('readonly', '');
+            textarea.style.position = 'absolute';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            try {
+                document.execCommand('copy');
+                showToast("Laporan berhasil disalin ke Clipboard!");
+            } catch (err) {
+                showToast("Gagal menyalin teks.");
+            }
+            document.body.removeChild(textarea);
+        }
+
         function getStudentTotalBayar(namaSiswa) {
             let total = 0;
             const namaLower = namaSiswa.toLowerCase();
             dataPembayaran.forEach(row => {
                 if(getCleanName(row).toLowerCase() === namaLower) {
-                    total += parseNumeric(getColValue(row, ["Jumlah", "Nominal", "Bayar"]));
+                    // Update: ambil dari kolom PEMBAYARAN 
+                    total += parseNumeric(getColValue(row, ["PEMBAYARAN", "Jumlah", "Nominal", "Bayar"]));
                 }
             });
             return total;
@@ -478,7 +563,7 @@
             if(row) {
                 total = parseNumeric(getColValue(row, ["TOTAL TUNGGAKAN", "Tunggakan"]));
             }
-            return total;
+            return total > 0 ? total : 0; // Pastikan tidak memunculkan minus di profil
         }
 
         function openModal(namaSiswa) {
@@ -486,13 +571,13 @@
             tbody.innerHTML = "";
             let counter = 1;
 
-            // Render Rincian History
             const namaLower = namaSiswa.toLowerCase();
             dataPembayaran.forEach(row => {
                 if(getCleanName(row).toLowerCase() === namaLower) {
                     const tgl = getColValue(row, ["Tanggal", "Tgl"]);
                     const bulan = getColValue(row, ["Bulan", "Keterangan"]);
-                    const jumlah = parseNumeric(getColValue(row, ["Jumlah", "Nominal"]));
+                    // Update ambil PEMBAYARAN
+                    const jumlah = parseNumeric(getColValue(row, ["PEMBAYARAN", "Jumlah", "Nominal"]));
                     
                     const tr = document.createElement('tr');
                     tr.className = "border-b border-gray-100 hover:bg-gray-50";
@@ -510,12 +595,10 @@
                 tbody.innerHTML = `<tr><td colspan="4" class="px-3 py-4 text-center text-gray-500 text-sm">Belum ada riwayat pembayaran.</td></tr>`;
             }
 
-            // Set Header & Summary
             document.getElementById('modal-nama').innerText = namaSiswa.toUpperCase();
             document.getElementById('modal-bayar').innerText = formatRupiah(getStudentTotalBayar(namaSiswa));
             document.getElementById('modal-tunggakan').innerText = formatRupiah(getStudentTotalTunggakan(namaSiswa));
             
-            // Show Modal
             document.getElementById('modal-detail').classList.remove('hidden');
         }
 
@@ -523,7 +606,6 @@
             document.getElementById('modal-detail').classList.add('hidden');
         }
 
-        // Close modal if click outside the card
         document.getElementById('modal-detail').addEventListener('click', function(e) {
             if(e.target === this) closeModal();
         });
