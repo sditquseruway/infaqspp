@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Aplikasi Infaq Santri</title>
+    <title>Laporan Infaq Santri</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- PapaParse for CSV parsing -->
@@ -31,98 +31,126 @@
         .tab-active { background-color: #facc15 !important; color: #14532d !important; font-weight: bold; }
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
         .modal-open { animation: zoomIn 0.3s ease-out forwards; }
         @keyframes zoomIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+        /* MODE PAS (MOBILE RESPONSIVE TABLE -> CARDS) */
+        @media (max-width: 767px) {
+            .responsive-table, .responsive-table tbody, .responsive-table tr, .responsive-table td { display: block; width: 100%; }
+            .responsive-table thead { display: none; }
+            .responsive-table tr { 
+                margin-bottom: 1rem; background-color: #ffffff; border: 1px solid #e5e7eb; 
+                border-radius: 0.75rem; padding: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); 
+            }
+            .responsive-table td { 
+                text-align: right; padding: 0.75rem 0.5rem; display: flex; 
+                justify-content: space-between; align-items: center; border-bottom: 1px dashed #e5e7eb; 
+            }
+            .responsive-table td:last-child { border-bottom: none; }
+            .responsive-table td::before { 
+                content: attr(data-label); font-size: 0.75rem; text-transform: uppercase; 
+                font-weight: 700; color: #6b7280; text-align: left; padding-right: 1rem; 
+            }
+            /* Styling khusus untuk kolom aksi/tombol agar melebar di HP */
+            .responsive-table td.col-aksi { flex-direction: column; align-items: stretch; gap: 0.5rem; }
+            .responsive-table td.col-aksi::before { display: none; } 
+        }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen font-sans text-gray-800 flex flex-col">
+<body class="bg-gray-50 min-h-screen font-sans text-gray-800 flex flex-col relative z-0">
 
-    <!-- Header -->
+    <div class="fixed inset-0 flex items-center justify-center opacity-15 pointer-events-none z-[-1]">
+        <img src="https://i.ibb.co.com/W49zb9n3/logo-yayasan-Terbaru.png" alt="Watermark" class="w-3/4 md:w-1/3 object-contain">
+    </div>
+
     <header class="bg-ygreen-700 shadow-lg border-b-4 border-yyellow-400 sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center space-x-3">
-                <div class="bg-white p-1.5 rounded-full shadow-md">
-                    <img src="https://i.ibb.co.com/W49zb9n3/logo-yayasan-Terbaru.png" alt="Logo" class="h-10 w-10 object-contain">
+                <div class="bg-white p-1.5 rounded-full shadow-md flex-shrink-0">
+                    <img src="https://i.ibb.co.com/W49zb9n3/logo-yayasan-Terbaru.png" alt="Logo" class="h-10 w-10 sm:h-12 sm:w-12 object-contain">
                 </div>
                 <div>
-                    <h1 class="text-xl sm:text-2xl font-bold text-white tracking-wide leading-tight">SI <span class="text-yyellow-400">Infaq Santri</span></h1>
-                    <p class="text-ygreen-100 text-xs sm:text-sm hidden sm:block">Sistem Informasi Pembayaran & Tunggakan</p>
+                    <h1 class="text-lg sm:text-2xl font-bold text-white tracking-wide leading-tight">Laporan Infaq Santri</h1>
+                    <p class="text-ygreen-100 text-[10px] sm:text-xs leading-tight">Yayasan Huda Wan Nurul Qurani<br>TK-SD-SMP International Tahfizh Quran</p>
                 </div>
             </div>
-            <button id="btn-install" class="hidden bg-yyellow-400 hover:bg-yyellow-500 text-ygreen-800 text-sm font-bold py-2 px-4 rounded-full shadow-md transition-all">
-                <i class="fas fa-download mr-1"></i> Install App
-            </button>
+            <div class="flex items-center gap-2">
+                <button id="btn-install" class="hidden bg-yyellow-400 hover:bg-yyellow-500 text-ygreen-800 text-xs sm:text-sm font-bold py-1.5 px-3 rounded-md shadow-md transition-all">
+                    <i class="fas fa-download"></i> <span class="hidden sm:inline">Install</span>
+                </button>
+                <button onclick="openAdminModal()" class="bg-ygreen-800 hover:bg-ygreen-900 text-white text-xs sm:text-sm py-1.5 px-3 rounded-md shadow-md transition-all border border-ygreen-600">
+                    <i class="fas fa-lock"></i> <span class="hidden sm:inline">Admin</span>
+                </button>
+            </div>
         </div>
     </header>
 
-    <!-- Global Loader -->
-    <div id="global-loader" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center">
+    <div id="global-loader" class="fixed inset-0 bg-white bg-opacity-95 z-50 flex flex-col items-center justify-center transition-opacity duration-500">
         <i class="fas fa-spinner fa-spin fa-4x text-ygreen-600 mb-4"></i>
-        <h2 class="text-xl font-bold text-ygreen-800">Memuat Database...</h2>
-        <p class="text-gray-500 mt-2 text-center px-4">Menyinkronkan data Tunggakan & Pembayaran Infaq</p>
+        <h2 class="text-xl font-bold text-ygreen-800">Menyinkronkan Data...</h2>
+        <p class="text-gray-500 mt-2 text-center px-4">Harap tunggu sebentar</p>
     </div>
 
-    <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full hidden" id="main-content">
         
-        <!-- Recap Section (Laporan Atas) -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-            <div class="bg-white rounded-xl shadow-md border-l-4 border-red-500 p-5 flex items-center">
-                <div class="bg-red-100 p-3 rounded-full mr-4">
-                    <i class="fas fa-file-invoice-dollar text-red-500 text-2xl"></i>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-500 font-semibold uppercase tracking-wider">Total Tunggakan Yayasan</p>
-                    <h3 class="text-2xl font-bold text-gray-800" id="recap-total-tunggakan">Rp 0</h3>
-                </div>
-            </div>
-            <div class="bg-white rounded-xl shadow-md border-l-4 border-yyellow-500 p-5 flex items-center">
-                <div class="bg-yellow-100 p-3 rounded-full mr-4">
-                    <i class="fas fa-users text-yyellow-600 text-2xl"></i>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-500 font-semibold uppercase tracking-wider">Jumlah Siswa Menunggak</p>
-                    <h3 class="text-2xl font-bold text-gray-800"><span id="recap-jumlah-siswa">0</span> <span class="text-lg font-medium text-gray-600">Santri</span></h3>
-                </div>
-            </div>
-        </div>
-
         <!-- Navigation Tabs -->
-        <div class="flex space-x-2 bg-ygreen-800 p-1 rounded-lg shadow-inner mb-6 inline-flex w-full sm:w-auto">
-            <button onclick="switchTab('tunggakan')" id="tab-tunggakan" class="flex-1 sm:flex-none px-6 py-2.5 rounded-md text-white hover:bg-ygreen-600 transition-colors flex items-center justify-center space-x-2 tab-active">
-                <i class="fas fa-list"></i><span class="hidden sm:inline">Data Tunggakan</span><span class="sm:hidden">Tunggakan</span>
+        <div class="flex flex-wrap gap-2 bg-ygreen-800 p-1.5 rounded-lg shadow-inner mb-6 w-full sm:w-max">
+            <button onclick="switchTab('tunggakan')" id="tab-tunggakan" class="flex-1 sm:flex-none px-4 py-2.5 rounded-md text-white hover:bg-ygreen-600 transition-colors flex items-center justify-center space-x-2 tab-active text-sm sm:text-base">
+                <i class="fas fa-list"></i><span>Tunggakan</span>
             </button>
-            <button onclick="switchTab('cari')" id="tab-cari" class="flex-1 sm:flex-none px-6 py-2.5 rounded-md text-white hover:bg-ygreen-600 transition-colors flex items-center justify-center space-x-2">
-                <i class="fas fa-search"></i><span class="hidden sm:inline">Cari Riwayat</span><span class="sm:hidden">Cari</span>
+            <button onclick="switchTab('cari')" id="tab-cari" class="flex-1 sm:flex-none px-4 py-2.5 rounded-md text-white hover:bg-ygreen-600 transition-colors flex items-center justify-center space-x-2 text-sm sm:text-base">
+                <i class="fas fa-search"></i><span>Cari Riwayat</span>
+            </button>
+            <button onclick="switchTab('admin')" id="tab-admin" class="hidden flex-1 sm:flex-none px-4 py-2.5 rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors flex items-center justify-center space-x-2 text-sm sm:text-base">
+                <i class="fas fa-chart-pie"></i><span>Dashboard Admin</span>
             </button>
         </div>
 
-        <!-- SECTION: TUNGGAKAN SISWA -->
+        <div id="recap-section" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            <div class="bg-white rounded-xl shadow-md border-l-4 border-red-500 p-4 sm:p-5 flex items-center bg-opacity-90">
+                <div class="bg-red-100 p-3 rounded-full mr-4 flex-shrink-0">
+                    <i class="fas fa-file-invoice-dollar text-red-500 text-xl sm:text-2xl"></i>
+                </div>
+                <div>
+                    <p class="text-xs sm:text-sm text-gray-500 font-semibold uppercase tracking-wider">Total Tunggakan Yayasan</p>
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800 break-all" id="recap-total-tunggakan">Rp 0</h3>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-md border-l-4 border-yyellow-500 p-4 sm:p-5 flex items-center bg-opacity-90">
+                <div class="bg-yellow-100 p-3 rounded-full mr-4 flex-shrink-0">
+                    <i class="fas fa-users text-yyellow-600 text-xl sm:text-2xl"></i>
+                </div>
+                <div>
+                    <p class="text-xs sm:text-sm text-gray-500 font-semibold uppercase tracking-wider">Siswa Menunggak</p>
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800"><span id="recap-jumlah-siswa">0</span> <span class="text-base sm:text-lg font-medium text-gray-600">Santri</span></h3>
+                </div>
+            </div>
+        </div>
+
         <section id="view-tunggakan" class="fade-in block">
-            <div class="bg-white rounded-xl shadow-md border-t-4 border-ygreen-600 overflow-hidden">
-                <!-- Toolbar Tunggakan -->
-                <div class="p-4 border-b border-gray-100 bg-gray-50 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="bg-white rounded-xl shadow-md border-t-4 border-ygreen-600 overflow-hidden bg-opacity-95">
+                <div class="p-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div class="flex items-center space-x-2 w-full sm:w-auto">
-                        <label for="filter-kelas" class="font-semibold text-gray-700 hidden sm:block">Filter:</label>
-                        <select id="filter-kelas" class="w-full sm:w-auto border border-gray-300 text-gray-700 rounded-lg p-2.5 focus:ring-ygreen-500 focus:border-ygreen-500 outline-none shadow-sm bg-white font-medium">
+                        <label for="filter-kelas" class="font-semibold text-gray-700 text-sm">Filter Kelas:</label>
+                        <select id="filter-kelas" class="flex-grow sm:flex-grow-0 border-2 border-gray-200 text-gray-700 rounded-lg p-2 focus:ring-ygreen-500 focus:border-ygreen-500 outline-none shadow-sm text-sm font-medium">
                             <option value="ALL">Semua Kelas</option>
-                            <!-- Diisi oleh JS -->
                         </select>
                     </div>
-                    <button onclick="copyClassReport()" class="w-full sm:w-auto bg-yyellow-400 hover:bg-yyellow-500 text-ygreen-900 px-4 py-2.5 rounded-lg font-bold shadow-sm transition-all flex items-center justify-center">
-                        <i class="fas fa-copy mr-2"></i> Copy Laporan
+                    <button onclick="copyClassReport()" class="w-full sm:w-auto bg-yyellow-400 hover:bg-yyellow-500 text-ygreen-900 px-4 py-2 rounded-lg font-bold shadow-sm transition-all flex items-center justify-center text-sm">
+                        <i class="fas fa-copy mr-2"></i> Copy Laporan WA
                     </button>
                 </div>
                 
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-ygreen-700 text-white text-sm uppercase tracking-wider">
+                <div class="overflow-x-auto sm:overflow-visible p-2 sm:p-0">
+                    <table class="w-full text-left border-collapse responsive-table">
+                        <thead class="bg-ygreen-700 text-white text-sm uppercase tracking-wider">
+                            <tr>
                                 <th class="px-4 py-3 border-b border-ygreen-800 text-center w-12">No</th>
                                 <th class="px-4 py-3 border-b border-ygreen-800">Nama Santri</th>
                                 <th class="px-4 py-3 border-b border-ygreen-800 text-center">Kelas</th>
                                 <th class="px-4 py-3 border-b border-ygreen-800 text-right">Total Tunggakan</th>
-                                <th class="px-4 py-3 border-b border-ygreen-800 text-center">Aksi</th>
+                                <th class="px-4 py-3 border-b border-ygreen-800 text-center">Aksi Tagihan</th>
                             </tr>
                         </thead>
                         <tbody id="tbody-tunggakan" class="text-gray-700 text-sm">
@@ -133,28 +161,28 @@
             </div>
         </section>
 
-        <!-- SECTION: CARI SISWA -->
         <section id="view-cari" class="fade-in hidden">
-            <div class="bg-white rounded-xl shadow-md border-t-4 border-yyellow-400 overflow-hidden p-5 sm:p-6 mb-6">
-                <h2 class="text-lg font-bold text-ygreen-800 mb-4"><i class="fas fa-search text-yyellow-500 mr-2"></i> Cari Pembayaran (Ketik min 3 huruf)</h2>
+            <div class="bg-white rounded-xl shadow-md border-t-4 border-yyellow-400 overflow-hidden p-5 sm:p-6 mb-6 bg-opacity-95">
+                <h2 class="text-base sm:text-lg font-bold text-ygreen-800 mb-4"><i class="fas fa-search text-yyellow-500 mr-2"></i> Cari Riwayat Pembayaran (Ketik min 3 huruf)</h2>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <i class="fas fa-user text-gray-400"></i>
                     </div>
-                    <input type="text" id="input-cari" class="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-0 focus:border-ygreen-500 transition shadow-sm outline-none font-medium" placeholder="Contoh: Budi...">
+                    <input type="text" id="input-cari" class="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:ring-0 focus:border-ygreen-500 transition shadow-sm outline-none font-medium text-sm sm:text-base" placeholder="Contoh: Muhammad...">
                 </div>
             </div>
 
-            <div class="bg-white rounded-xl shadow-md border-t-4 border-ygreen-600 overflow-hidden hidden" id="result-cari">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-ygreen-700 text-white text-sm uppercase tracking-wider">
+            <div class="bg-white rounded-xl shadow-md border-t-4 border-ygreen-600 overflow-hidden hidden bg-opacity-95 p-2 sm:p-0" id="result-cari">
+                <div class="overflow-x-auto sm:overflow-visible">
+                    <table class="w-full text-left border-collapse responsive-table">
+                        <thead class="bg-ygreen-700 text-white text-xs sm:text-sm uppercase tracking-wider">
+                            <tr>
                                 <th class="px-4 py-3 text-center w-12">No</th>
                                 <th class="px-4 py-3">Tanggal</th>
                                 <th class="px-4 py-3">Nama Siswa</th>
                                 <th class="px-4 py-3 text-right">Pembayaran</th>
-                                <th class="px-4 py-3">Keterangan</th>
+                                <th class="px-4 py-3">Keterangan Bayar</th>
+                                <th class="px-4 py-3">Bulan</th>
                             </tr>
                         </thead>
                         <tbody id="tbody-cari" class="text-gray-700 text-sm">
@@ -164,39 +192,75 @@
                 </div>
             </div>
             
-            <!-- Empty State -->
-            <div id="no-data-cari" class="p-10 text-center bg-white rounded-xl shadow-md border-t-4 border-gray-300 hidden">
-                <i class="fas fa-search text-4xl text-gray-300 mb-3"></i>
-                <h3 class="text-lg font-bold text-gray-600">Ketik nama untuk mencari</h3>
-                <p class="text-gray-400 text-sm">Hasil akan otomatis muncul setelah mengetik 3 huruf.</p>
+            <div id="no-data-cari" class="p-8 sm:p-10 text-center bg-white rounded-xl shadow-md border-t-4 border-gray-300 hidden bg-opacity-95">
+                <i class="fas fa-search text-3xl sm:text-4xl text-gray-300 mb-3"></i>
+                <h3 class="text-base sm:text-lg font-bold text-gray-600">Ketik nama untuk mencari</h3>
+                <p class="text-gray-400 text-xs sm:text-sm">Riwayat otomatis muncul setelah 3 huruf.</p>
+            </div>
+        </section>
+
+        <section id="view-admin" class="fade-in hidden">
+            <div class="bg-white rounded-xl shadow-md border-t-4 border-red-600 overflow-hidden bg-opacity-95 mb-6">
+                <div class="bg-red-50 p-4 border-b border-red-100 flex items-center gap-3">
+                    <i class="fas fa-chart-line text-2xl text-red-600"></i>
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-800">Dashboard Pendapatan Santri</h2>
+                        <p class="text-xs text-gray-500">Akumulasi 'Bayar Bulanan' Berdasarkan Jalur Masuk/Jenjang</p>
+                    </div>
+                </div>
+                
+                <div class="p-2 sm:p-0">
+                    <table class="w-full text-left border-collapse responsive-table">
+                        <thead class="bg-gray-100 text-gray-600 text-xs sm:text-sm uppercase tracking-wider">
+                            <tr>
+                                <th class="px-4 py-3 border-b text-center w-12">No</th>
+                                <th class="px-4 py-3 border-b">Jalur Masuk / Jenjang</th>
+                                <th class="px-4 py-3 border-b text-right">Total Pendapatan (Bayar Bulanan)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-admin" class="text-gray-700 text-sm">
+                            <!-- Populated via JS -->
+                        </tbody>
+                        <tfoot class="bg-red-600 text-white font-bold hidden sm:table-footer-group" id="tfoot-admin">
+                            <tr>
+                                <td colspan="2" class="px-4 py-3 text-right">TOTAL KESELURUHAN</td>
+                                <td class="px-4 py-3 text-right" id="admin-total-pendapatan">Rp 0</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <!-- Total Display Khusus Mobile (karena Tfoot di-hide di responsive css) -->
+                <div class="sm:hidden bg-red-600 text-white p-4 flex justify-between items-center rounded-b-xl font-bold">
+                    <span>TOTAL KESELURUHAN:</span>
+                    <span id="admin-total-pendapatan-mobile">Rp 0</span>
+                </div>
             </div>
         </section>
     </main>
 
-    <!-- Modal Popup Detail Siswa -->
-    <div id="modal-detail" class="fixed inset-0 bg-gray-900 bg-opacity-60 z-50 hidden flex items-center justify-center p-4">
+    <div id="modal-detail" class="fixed inset-0 bg-gray-900 bg-opacity-70 z-50 hidden flex items-center justify-center p-3 sm:p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden modal-open">
-            <div class="bg-ygreen-700 px-6 py-4 flex justify-between items-center text-white">
-                <h3 class="font-bold text-lg flex items-center"><i class="fas fa-user-graduate mr-2 text-yyellow-400"></i> <span id="modal-nama">-</span></h3>
-                <button onclick="closeModal()" class="text-white hover:text-yyellow-300 transition text-2xl focus:outline-none">&times;</button>
+            <div class="bg-ygreen-700 px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center text-white">
+                <h3 class="font-bold text-base sm:text-lg flex items-center line-clamp-1"><i class="fas fa-user-graduate mr-2 text-yyellow-400"></i> <span id="modal-nama">-</span></h3>
+                <button onclick="closeModal('modal-detail')" class="text-white hover:text-yyellow-300 transition text-2xl focus:outline-none ml-2">&times;</button>
             </div>
-            <div class="p-6 overflow-y-auto flex-grow bg-gray-50">
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <div class="bg-green-100 p-4 rounded-lg border border-green-200 text-center">
-                        <p class="text-xs text-green-700 font-bold uppercase">Total Sudah Bayar</p>
-                        <p class="text-lg font-extrabold text-green-800 mt-1" id="modal-bayar">Rp 0</p>
+            <div class="p-4 sm:p-6 overflow-y-auto flex-grow bg-gray-50">
+                <div class="grid grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
+                    <div class="bg-green-100 p-3 sm:p-4 rounded-lg border border-green-200 text-center shadow-sm">
+                        <p class="text-[10px] sm:text-xs text-green-700 font-bold uppercase">Total Sudah Bayar</p>
+                        <p class="text-base sm:text-xl font-extrabold text-green-800 mt-1 break-all" id="modal-bayar">Rp 0</p>
                     </div>
-                    <div class="bg-red-100 p-4 rounded-lg border border-red-200 text-center">
-                        <p class="text-xs text-red-700 font-bold uppercase">Total Tunggakan</p>
-                        <p class="text-lg font-extrabold text-red-800 mt-1" id="modal-tunggakan">Rp 0</p>
+                    <div class="bg-red-100 p-3 sm:p-4 rounded-lg border border-red-200 text-center shadow-sm">
+                        <p class="text-[10px] sm:text-xs text-red-700 font-bold uppercase">Total Tunggakan</p>
+                        <p class="text-base sm:text-xl font-extrabold text-red-800 mt-1 break-all" id="modal-tunggakan">Rp 0</p>
                     </div>
                 </div>
-                <h4 class="font-bold text-gray-700 mb-3 border-b-2 border-ygreen-200 pb-2"><i class="fas fa-history mr-1"></i> Rincian Pembayaran</h4>
-                <div class="overflow-x-auto rounded-lg border border-gray-200">
-                    <table class="w-full text-left text-sm">
-                        <thead class="bg-gray-100 text-gray-600">
+                <h4 class="font-bold text-gray-700 mb-3 border-b-2 border-ygreen-200 pb-2 text-sm sm:text-base"><i class="fas fa-history mr-1"></i> Rincian Pembayaran</h4>
+                <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm sm:overflow-visible">
+                    <table class="w-full text-left text-xs sm:text-sm responsive-table">
+                        <thead class="bg-gray-100 text-gray-600 uppercase">
                             <tr>
-                                <th class="px-3 py-2 text-center">No</th>
+                                <th class="px-3 py-2 text-center w-10">No</th>
                                 <th class="px-3 py-2">Tanggal</th>
                                 <th class="px-3 py-2">Bulan/Ket</th>
                                 <th class="px-3 py-2 text-right">Jumlah</th>
@@ -208,18 +272,33 @@
                     </table>
                 </div>
             </div>
-            <div class="border-t border-gray-200 p-4 bg-white flex justify-end">
-                <button onclick="closeModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-6 rounded-lg transition">Tutup</button>
+            <div class="border-t border-gray-200 p-3 sm:p-4 bg-white flex justify-end">
+                <button onclick="closeModal('modal-detail')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-1.5 sm:py-2 px-5 sm:px-6 rounded-lg transition text-sm">Tutup</button>
             </div>
         </div>
     </div>
 
-    <!-- Toast Notification (Custom Alert) -->
-    <div id="toast" class="fixed bottom-5 right-5 bg-ygreen-800 text-white px-6 py-3 rounded-lg shadow-xl transform transition-transform translate-y-20 opacity-0 z-50 pointer-events-none flex items-center">
-        <i class="fas fa-check-circle mr-2 text-yyellow-400"></i> <span id="toast-msg" class="font-medium">Notifikasi</span>
+    <div id="modal-admin-login" class="fixed inset-0 bg-gray-900 bg-opacity-80 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden modal-open">
+            <div class="bg-red-600 px-5 py-4 text-white flex justify-between items-center">
+                <h3 class="font-bold text-lg"><i class="fas fa-shield-alt mr-2"></i> Akses Admin</h3>
+                <button onclick="closeModal('modal-admin-login')" class="text-white hover:text-gray-200 text-2xl focus:outline-none">&times;</button>
+            </div>
+            <div class="p-6">
+                <p class="text-sm text-gray-600 mb-4 text-center">Masukkan sandi khusus untuk membuka Dashboard Pendapatan.</p>
+                <input type="password" id="admin-password" class="w-full border-2 border-gray-300 rounded-lg p-3 focus:ring-red-500 focus:border-red-500 outline-none text-center text-lg mb-4" placeholder="••••••••">
+                <button onclick="verifyAdmin()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg shadow transition-colors">
+                    Masuk
+                </button>
+            </div>
+        </div>
     </div>
 
-    <!-- Scripts -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-gray-900 bg-opacity-90 text-white px-5 sm:px-6 py-3 sm:py-4 rounded-xl shadow-2xl transform transition-transform translate-y-24 opacity-0 z-[100] pointer-events-none flex items-center max-w-[90vw]">
+        <i class="fas fa-info-circle mr-3 text-yyellow-400 text-xl"></i> 
+        <span id="toast-msg" class="font-medium text-sm sm:text-base leading-tight">Pesan Notifikasi</span>
+    </div>
+
     <script>
         // URLs Database
         const URL_TUNGGAKAN = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRR3UGAaAu88VLk17PoUu_6h3bUmT3O4usNKDqxHGSGly8tCQYjM6gQCe1GXFD6jc3lOTvvhOH0ilto/pub?gid=917422507&single=true&output=csv";
@@ -227,12 +306,13 @@
 
         let dataTunggakan = [];
         let dataPembayaran = [];
+        let isAdminVerified = false;
 
         // PWA Setup Script
         function setupPWA() {
             try {
                 const manifest = {
-                    "name": "Aplikasi Infaq Santri",
+                    "name": "Laporan Infaq Santri",
                     "short_name": "Infaq Santri",
                     "start_url": ".",
                     "display": "standalone",
@@ -243,7 +323,7 @@
                 const manifestString = JSON.stringify(manifest);
                 const manifestUrl = 'data:application/json;charset=utf-8,' + encodeURIComponent(manifestString);
                 document.querySelector('head').insertAdjacentHTML('beforeend', `<link rel="manifest" href="${manifestUrl}">`);
-            } catch(e) { console.log('PWA skipped', e); }
+            } catch(e) {}
         }
 
         let deferredPrompt;
@@ -261,61 +341,66 @@
             }
         });
 
-        // Event Listeners
-        document.addEventListener('DOMContentLoaded', async () => {
+        // Initialize on Load with Non-Blocking approach
+        document.addEventListener('DOMContentLoaded', () => {
             setupPWA();
-            await fetchAllData();
-            processRecap();
-            populateKelasFilter();
-            renderTunggakanTable();
-            
-            document.getElementById('global-loader').classList.add('hidden');
-            document.getElementById('main-content').classList.remove('hidden');
-            document.getElementById('no-data-cari').classList.remove('hidden');
+            loadDatabasesAsync();
 
-            // Search input Listener
             document.getElementById('input-cari').addEventListener('input', function(e) {
                 const query = e.target.value.trim();
-                if(query.length >= 3) {
-                    executeSearch(query);
-                } else {
+                if(query.length >= 3) executeSearch(query);
+                else {
                     document.getElementById('result-cari').classList.add('hidden');
                     document.getElementById('no-data-cari').classList.remove('hidden');
                 }
             });
-
-            // Filter Kelas Listener
-            document.getElementById('filter-kelas').addEventListener('change', function() {
-                renderTunggakanTable();
-            });
+            document.getElementById('filter-kelas').addEventListener('change', renderTunggakanTable);
         });
 
-        async function fetchCsv(url) {
+        // Fetching Data Cepat
+        async function loadDatabasesAsync() {
             try {
-                const res = await fetch(url);
-                const text = await res.text();
-                return new Promise((resolve) => {
-                    Papa.parse(text, { header: true, skipEmptyLines: true, complete: result => resolve(result.data) });
-                });
-            } catch(e) { return []; }
+                // Fetch text streams concurrently
+                const [tunggakanRes, bayarRes] = await Promise.all([
+                    fetch(URL_TUNGGAKAN).then(res => res.text()),
+                    fetch(URL_PEMBAYARAN).then(res => res.text())
+                ]);
+
+                // Yield rendering thread slightly before heavy parsing
+                setTimeout(() => {
+                    dataTunggakan = Papa.parse(tunggakanRes, { header: true, skipEmptyLines: true }).data;
+                    dataPembayaran = Papa.parse(bayarRes, { header: true, skipEmptyLines: true }).data;
+                    
+                    finishLoading();
+                }, 10);
+            } catch(e) {
+                showToast("Koneksi gagal, silakan refresh.");
+            }
         }
 
-        async function fetchAllData() {
-            const [tunggakanRes, bayarRes] = await Promise.all([ fetchCsv(URL_TUNGGAKAN), fetchCsv(URL_PEMBAYARAN) ]);
-            dataTunggakan = tunggakanRes;
-            dataPembayaran = bayarRes;
+        function finishLoading() {
+            processRecap();
+            populateKelasFilter();
+            renderTunggakanTable();
+            
+            const loader = document.getElementById('global-loader');
+            loader.style.opacity = '0';
+            setTimeout(() => {
+                loader.classList.add('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+                document.getElementById('no-data-cari').classList.remove('hidden');
+            }, 500); // match transition duration
         }
 
+        /* Helpers */
         function formatRupiah(num) {
             return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num || 0);
         }
-
         function parseNumeric(str) {
             if(!str) return 0;
-            let numStr = String(str).replace(/[^\d-]/g, ''); // pertahankan digit dan minus
+            let numStr = String(str).replace(/[^\d-]/g, '');
             return parseInt(numStr, 10) || 0;
         }
-
         function getColValue(rowObj, possibleNames) {
             const keys = Object.keys(rowObj);
             for (let name of possibleNames) {
@@ -324,65 +409,131 @@
             }
             return "";
         }
-
         function getCleanName(rowObj) {
-            return getColValue(rowObj, ["NAMA SANTRI 2026", "Nama Santri", "Nama Siswa", "Nama"]).trim();
+            return getColValue(rowObj, ["Nama Santri", "Nama Siswa", "Nama"]).trim();
         }
 
         function showToast(msg) {
             const toast = document.getElementById('toast');
             document.getElementById('toast-msg').innerText = msg;
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-24', 'opacity-0'), 3500);
+        }
+
+        /* UI Navigation */
+        function switchTab(tabName) {
+            const views = { cari: 'view-cari', tunggakan: 'view-tunggakan', admin: 'view-admin' };
+            const tabs = { cari: 'tab-cari', tunggakan: 'tab-tunggakan', admin: 'tab-admin' };
+            
+            // Hide all views, dim tabs
+            Object.keys(views).forEach(k => {
+                document.getElementById(views[k]).classList.add('hidden');
+                if(document.getElementById(tabs[k])) {
+                    document.getElementById(tabs[k]).classList.remove('tab-active');
+                    if(k !== 'admin') document.getElementById(tabs[k]).classList.replace('bg-yyellow-400', 'bg-ygreen-800');
+                }
+            });
+
+            // Show active
+            document.getElementById(views[tabName]).classList.remove('hidden');
+            if(tabName !== 'admin') {
+                document.getElementById(tabs[tabName]).classList.add('tab-active');
+                document.getElementById(tabs[tabName]).classList.replace('bg-ygreen-800', 'bg-yyellow-400');
+                document.getElementById('recap-section').classList.remove('hidden');
+            } else {
+                document.getElementById('recap-section').classList.add('hidden');
+            }
+        }
+
+        function openAdminModal() {
+            if(isAdminVerified) {
+                document.getElementById('tab-admin').classList.remove('hidden');
+                switchTab('admin');
+                renderAdminDashboard();
+            } else {
+                document.getElementById('admin-password').value = '';
+                document.getElementById('modal-admin-login').classList.remove('hidden');
+            }
+        }
+        
+        function verifyAdmin() {
+            const pwd = document.getElementById('admin-password').value;
+            if(pwd === 'admin123') {
+                isAdminVerified = true;
+                closeModal('modal-admin-login');
+                document.getElementById('tab-admin').classList.remove('hidden');
+                showToast("Akses Admin Terbuka!");
+                switchTab('admin');
+                renderAdminDashboard();
+            } else {
+                showToast("Password Salah!");
+            }
+        }
+
+        function renderAdminDashboard() {
+            const tbody = document.getElementById('tbody-admin');
+            tbody.innerHTML = '';
+            
+            let recap = {};
+            // Group by Jenjang/Masuk Jalur, Sum by Bayar Bulanan
+            dataTunggakan.forEach(row => {
+                // Kolom pencarian: "Jenjang", "Masuk Jalur", "Jalur Masuk"
+                let jenjang = getColValue(row, ["Jenjang", "Masuk Jalur", "Jalur"]).trim();
+                if(!jenjang) jenjang = "Lainnya";
+                
+                // Kolom pencarian nominal: "Bayar Bulanan", "2Bayar Bulanan"
+                const bayarBulanan = parseNumeric(getColValue(row, ["Bayar Bulanan", "2Bayar Bulanan", "BAYAR BULANAN"]));
+                
+                if(!recap[jenjang]) recap[jenjang] = 0;
+                recap[jenjang] += bayarBulanan;
+            });
+
+            let totalKeseluruhan = 0;
+            let index = 1;
+            for (let jnj in recap) {
+                totalKeseluruhan += recap[jnj];
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td data-label="No" class="px-4 py-3 text-center sm:text-left">${index++}</td>
+                    <td data-label="Jalur / Jenjang" class="px-4 py-3 font-semibold text-gray-800">${jnj}</td>
+                    <td data-label="Total Pendapatan" class="px-4 py-3 text-right font-bold text-green-700">${formatRupiah(recap[jnj])}</td>
+                `;
+                tbody.appendChild(tr);
+            }
+            
+            if(index === 1) {
+                tbody.innerHTML = `<tr><td colspan="3" class="text-center p-6 text-gray-500">Data tidak ditemukan.</td></tr>`;
+            }
+
+            document.getElementById('admin-total-pendapatan').innerText = formatRupiah(totalKeseluruhan);
+            document.getElementById('admin-total-pendapatan-mobile').innerText = formatRupiah(totalKeseluruhan);
         }
 
         function processRecap() {
-            let totalTunggakanYayasan = 0;
-            let totalSiswaMenunggak = 0;
-            
+            let totalTunggakan = 0, jumlahSiswa = 0;
             dataTunggakan.forEach(row => {
                 const nama = getCleanName(row);
                 const tunggakan = parseNumeric(getColValue(row, ["TOTAL TUNGGAKAN", "Tunggakan"]));
-                // Hanya akumulasi yang > 0 (tidak minus dan tidak nol)
                 if(nama && tunggakan > 0) { 
-                    totalTunggakanYayasan += tunggakan;
-                    totalSiswaMenunggak++;
+                    totalTunggakan += tunggakan;
+                    jumlahSiswa++;
                 }
             });
-            
-            document.getElementById('recap-total-tunggakan').innerText = formatRupiah(totalTunggakanYayasan);
-            document.getElementById('recap-jumlah-siswa').innerText = totalSiswaMenunggak;
-        }
-
-        function switchTab(tabName) {
-            const views = { cari: document.getElementById('view-cari'), tunggakan: document.getElementById('view-tunggakan') };
-            const tabs = { cari: document.getElementById('tab-cari'), tunggakan: document.getElementById('tab-tunggakan') };
-            
-            Object.keys(views).forEach(k => {
-                if(k === tabName) {
-                    views[k].classList.remove('hidden');
-                    tabs[k].classList.add('tab-active');
-                    tabs[k].classList.replace('bg-ygreen-800', 'bg-yyellow-400');
-                } else {
-                    views[k].classList.add('hidden');
-                    tabs[k].classList.remove('tab-active');
-                }
-            });
+            document.getElementById('recap-total-tunggakan').innerText = formatRupiah(totalTunggakan);
+            document.getElementById('recap-jumlah-siswa').innerText = jumlahSiswa;
         }
 
         function populateKelasFilter() {
-            const kelasSet = new Set();
+            const setKelas = new Set();
             dataTunggakan.forEach(row => {
                 const tunggakan = parseNumeric(getColValue(row, ["TOTAL TUNGGAKAN", "Tunggakan"]));
-                if (tunggakan > 0) { // Hanya ambil kelas yang memiliki siswa nunggak
-                    const kelas = getColValue(row, ["Kelas", "Jenjang"]);
-                    if(kelas) kelasSet.add(kelas.trim());
+                if (tunggakan > 0) {
+                    const kelas = getColValue(row, ["Kelas"]).trim();
+                    if(kelas) setKelas.add(kelas);
                 }
             });
-
             const filterEl = document.getElementById('filter-kelas');
-            filterEl.innerHTML = '<option value="ALL">Semua Kelas</option>';
-            Array.from(kelasSet).sort().forEach(k => {
+            Array.from(setKelas).sort().forEach(k => {
                 const opt = document.createElement('option');
                 opt.value = k;
                 opt.textContent = `Kelas ${k}`;
@@ -393,59 +544,53 @@
         function renderTunggakanTable() {
             const tbody = document.getElementById('tbody-tunggakan');
             tbody.innerHTML = "";
-            const selectedKelas = document.getElementById('filter-kelas').value;
+            const filterVal = document.getElementById('filter-kelas').value;
 
             let validData = dataTunggakan.map(row => {
                 return {
                     nama: getCleanName(row),
-                    kelas: getColValue(row, ["Kelas", "Jenjang"]).trim(),
+                    kelas: getColValue(row, ["Kelas"]).trim(),
                     totalTunggakan: parseNumeric(getColValue(row, ["TOTAL TUNGGAKAN"])),
                     rawRow: row 
                 };
             }).filter(item => {
-                // Filter: Nama ada, Tunggakan harus lebih besar dari 0 (hilangkan 0 dan minus)
                 if(!item.nama || item.totalTunggakan <= 0) return false;
-                // Filter Kelas
-                if(selectedKelas !== 'ALL' && item.kelas !== selectedKelas) return false;
+                if(filterVal !== 'ALL' && item.kelas !== filterVal) return false;
                 return true;
             });
 
-            // Sort by tunggakan terbesar
             validData.sort((a, b) => b.totalTunggakan - a.totalTunggakan);
 
             if(validData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-500">Alhamdulillah, tidak ada santri yang menunggak di daftar ini.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-500">Tidak ada santri menunggak di daftar ini.</td></tr>`;
             } else {
                 validData.forEach((item, index) => {
                     const tr = document.createElement('tr');
-                    tr.className = "hover:bg-green-50 border-b border-gray-100";
+                    tr.className = "hover:bg-green-50";
                     
                     let phone = getColValue(item.rawRow, ["Nomor Hape", "No HP", "Telepon"]);
-                    let waBtn = `<button disabled class="bg-gray-300 text-gray-500 px-3 py-1.5 rounded-md text-xs font-bold w-full cursor-not-allowed">No HP (-)</button>`;
+                    let waBtn = `<button disabled class="bg-gray-300 text-gray-500 px-3 py-1.5 rounded-md text-xs font-bold w-full cursor-not-allowed text-center">No HP (-)</button>`;
                     
                     if(phone) {
                         phone = phone.replace(/\D/g, ''); 
                         if(phone.startsWith('0')) phone = '62' + phone.substring(1); 
                         
                         const totalBayar = getStudentTotalBayar(item.nama);
-                        // Official Polite WA Message
-                        const msg = `Assalamualaikum Warahmatullahi Wabarakatuh.\n\nMohon maaf mengganggu waktunya, Ayah/Bunda. Bersama pesan ini, kami ingin menyampaikan informasi rincian infaq/SPP ananda *${item.nama}*.\n\nBerikut adalah rincian pembayarannya:\n- Total Infaq Terbayar: *${formatRupiah(totalBayar)}*\n- Total Tunggakan Infaq: *${formatRupiah(item.totalTunggakan)}*\n\nKami memohon kerja sama Ayah/Bunda untuk dapat menyelesaikan tunggakan tersebut melalui Bendahara Yayasan, agar kegiatan operasional dan pendidikan santri dapat berjalan dengan lancar.\n\nAtas perhatian dan kerja samanya, kami ucapkan jazakumullah khairan katsiran.\n\nWassalamualaikum Warahmatullahi Wabarakatuh.`;
+                        const msg = `Assalamualaikum Warahmatullahi Wabarakatuh.\n\nMohon maaf mengganggu waktunya, Ayah/Bunda. Bersama pesan ini, kami ingin menyampaikan informasi rincian administrasi/infaq santri atas nama:\n*${item.nama}*\n\nBerikut rincian pembayarannya:\n- Telah Dibayarkan: *${formatRupiah(totalBayar)}*\n- Total Tunggakan: *${formatRupiah(item.totalTunggakan)}*\n\nKami memohon kerja sama Ayah/Bunda agar dapat melakukan pembayaran langsung ke Bendahara Yayasan untuk kelancaran operasional pendidikan ananda.\n\nAtas perhatiannya kami ucapkan terima kasih.\nWassalamualaikum Warahmatullahi Wabarakatuh.`;
                         
-                        const waLink = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
-                        
-                        waBtn = `<a href="${waLink}" target="_blank" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-md text-xs font-bold shadow-sm flex items-center justify-center transition-all w-full sm:w-auto mx-auto max-w-[140px]">
+                        waBtn = `<a href="https://wa.me/${phone}?text=${encodeURIComponent(msg)}" target="_blank" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-md text-xs font-bold shadow-sm flex items-center justify-center transition-all w-full">
                                     <i class="fab fa-whatsapp mr-1 text-sm"></i> Kirim Tagihan
                                  </a>`;
                     }
 
                     tr.innerHTML = `
-                        <td class="px-4 py-3 text-center">${index + 1}</td>
-                        <td class="px-4 py-3 font-semibold text-ygreen-700 hover:text-yyellow-500 cursor-pointer underline decoration-dotted transition-colors" onclick="openModal('${item.nama.replace(/'/g, "\\'")}')">
+                        <td data-label="No" class="px-4 py-3 sm:text-center">${index + 1}</td>
+                        <td data-label="Nama Santri" class="px-4 py-3 font-semibold text-ygreen-700 hover:text-yyellow-500 cursor-pointer underline decoration-dotted transition-colors" onclick="openModalDetail('${item.nama.replace(/'/g, "\\'")}')">
                             ${item.nama}
                         </td>
-                        <td class="px-4 py-3 text-center text-gray-600 text-sm">${item.kelas || '-'}</td>
-                        <td class="px-4 py-3 text-right font-bold text-red-600">${formatRupiah(item.totalTunggakan)}</td>
-                        <td class="px-4 py-3 align-middle">${waBtn}</td>
+                        <td data-label="Kelas" class="px-4 py-3 sm:text-center text-gray-600 text-sm">${item.kelas || '-'}</td>
+                        <td data-label="Tunggakan" class="px-4 py-3 sm:text-right font-bold text-red-600">${formatRupiah(item.totalTunggakan)}</td>
+                        <td data-label="Aksi Tagihan" class="px-4 py-3 align-middle col-aksi">${waBtn}</td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -458,28 +603,28 @@
             
             const tbody = document.getElementById('tbody-cari');
             tbody.innerHTML = "";
-            let matchCount = 0;
-            const queryLower = query.toLowerCase();
+            let matchCount = 0, queryLower = query.toLowerCase();
 
             dataPembayaran.forEach((row) => {
                 const nama = getCleanName(row);
                 if(nama && nama.toLowerCase().includes(queryLower)) {
                     matchCount++;
                     const tglBayar = getColValue(row, ["Tanggal", "Tgl"]);
-                    const bulan = getColValue(row, ["Bulan", "Keterangan"]);
-                    // Update: Mengambil tepat di kolom PEMBAYARAN
-                    const jumlah = parseNumeric(getColValue(row, ["PEMBAYARAN", "Jumlah", "Nominal", "Bayar"]));
+                    const keteranganBayar = getColValue(row, ["Keterangan Bayar", "Ket", "Keterangan"]);
+                    const bulan = getColValue(row, ["Bulan"]);
+                    const jumlah = parseNumeric(getColValue(row, ["PEMBAYARAN", "Jumlah", "Bayar"]));
 
                     const tr = document.createElement('tr');
-                    tr.className = "hover:bg-yellow-50 border-b border-gray-100";
+                    tr.className = "hover:bg-yellow-50";
                     tr.innerHTML = `
-                        <td class="px-4 py-3 text-center text-gray-500">${matchCount}</td>
-                        <td class="px-4 py-3 whitespace-nowrap text-gray-600 text-sm">${tglBayar || '-'}</td>
-                        <td class="px-4 py-3 font-semibold text-ygreen-700 hover:text-yyellow-500 cursor-pointer underline decoration-dotted" onclick="openModal('${nama.replace(/'/g, "\\'")}')">
+                        <td data-label="No" class="px-4 py-3 sm:text-center text-gray-500">${matchCount}</td>
+                        <td data-label="Tanggal" class="px-4 py-3 whitespace-nowrap text-gray-600 text-sm">${tglBayar || '-'}</td>
+                        <td data-label="Nama Siswa" class="px-4 py-3 font-semibold text-ygreen-700 hover:text-yyellow-500 cursor-pointer underline decoration-dotted" onclick="openModalDetail('${nama.replace(/'/g, "\\'")}')">
                             ${nama}
                         </td>
-                        <td class="px-4 py-3 text-right font-bold text-gray-800">${formatRupiah(jumlah)}</td>
-                        <td class="px-4 py-3 text-gray-600 text-sm">${bulan || '-'}</td>
+                        <td data-label="Pembayaran" class="px-4 py-3 sm:text-right font-bold text-gray-800">${formatRupiah(jumlah)}</td>
+                        <td data-label="Ket. Bayar" class="px-4 py-3 text-gray-600 text-sm font-medium">${keteranganBayar || '-'}</td>
+                        <td data-label="Bulan" class="px-4 py-3 text-gray-600 text-sm">${bulan || '-'}</td>
                     `;
                     tbody.appendChild(tr);
                 }
@@ -491,42 +636,94 @@
             }
         }
 
-        function copyClassReport() {
-            const selectedKelas = document.getElementById('filter-kelas').value;
-            
-            let filteredData = dataTunggakan.map(row => {
-                return {
-                    nama: getCleanName(row),
-                    kelas: getColValue(row, ["Kelas", "Jenjang"]).trim(),
-                    totalTunggakan: parseNumeric(getColValue(row, ["TOTAL TUNGGAKAN", "Tunggakan"]))
-                };
-            }).filter(item => item.nama && item.totalTunggakan > 0);
-
-            let classNameLabel = "Semua Santri";
-            if(selectedKelas !== 'ALL') {
-                filteredData = filteredData.filter(item => item.kelas === selectedKelas);
-                classNameLabel = selectedKelas;
-            }
-
-            if(filteredData.length === 0) {
-                showToast("Tidak ada data tunggakan untuk disalin.");
-                return;
-            }
-
-            filteredData.sort((a, b) => b.totalTunggakan - a.totalTunggakan);
-
-            let text = `Assalamualaikum Warahmatullahi Wabarakatuh.\n\nBerikut kami sampaikan nama santri kelas *${classNameLabel}* yang memiliki tunggakan pada bulan ini:\n\n`;
-            
+        function getStudentTotalBayar(namaSiswa) {
             let total = 0;
-            filteredData.forEach((item, idx) => {
-                text += `${idx + 1}. ${item.nama} - ${formatRupiah(item.totalTunggakan)}\n`;
-                total += item.totalTunggakan;
+            const namaLower = namaSiswa.toLowerCase();
+            dataPembayaran.forEach(row => {
+                if(getCleanName(row).toLowerCase() === namaLower) {
+                    total += parseNumeric(getColValue(row, ["PEMBAYARAN", "Jumlah", "Bayar"]));
+                }
+            });
+            return total;
+        }
+
+        function getStudentTotalTunggakan(namaSiswa) {
+            const row = dataTunggakan.find(r => getCleanName(r).toLowerCase() === namaSiswa.toLowerCase());
+            return row ? parseNumeric(getColValue(row, ["TOTAL TUNGGAKAN"])) : 0;
+        }
+
+        function openModalDetail(namaSiswa) {
+            const tbody = document.getElementById('modal-tbody-rincian');
+            tbody.innerHTML = "";
+            let counter = 1;
+            const namaLower = namaSiswa.toLowerCase();
+            
+            dataPembayaran.forEach(row => {
+                if(getCleanName(row).toLowerCase() === namaLower) {
+                    const tgl = getColValue(row, ["Tanggal", "Tgl"]);
+                    const bulan = getColValue(row, ["Bulan"]);
+                    const ket = getColValue(row, ["Keterangan Bayar", "Ket", "Keterangan"]);
+                    const txtKet = [bulan, ket].filter(Boolean).join(" - ");
+                    const jumlah = parseNumeric(getColValue(row, ["PEMBAYARAN", "Jumlah"]));
+                    
+                    const tr = document.createElement('tr');
+                    tr.className = "border-b border-gray-100 hover:bg-gray-50";
+                    tr.innerHTML = `
+                        <td data-label="No" class="px-3 py-2 text-center text-gray-500 w-10">${counter++}</td>
+                        <td data-label="Tanggal" class="px-3 py-2 whitespace-nowrap">${tgl}</td>
+                        <td data-label="Bulan/Ket" class="px-3 py-2">${txtKet}</td>
+                        <td data-label="Jumlah" class="px-3 py-2 text-right font-semibold text-green-700">${formatRupiah(jumlah)}</td>
+                    `;
+                    tbody.appendChild(tr);
+                }
             });
 
-            text += `\n*Total Tunggakan Kelas ${classNameLabel} : ${formatRupiah(total)}*\n\n`;
-            text += `Kami harap kepada orang tua/wali santri agar dapat membayar infaq/SPP tepat waktu agar kegiatan operasional dan pendidikan santri berjalan dengan lancar tanpa kendala.\n\nAtas perhatian dan kerja samanya, kami ucapkan terima kasih.\nWassalamualaikum Warahmatullahi Wabarakatuh.`;
+            if(counter === 1) tbody.innerHTML = `<tr><td colspan="4" class="px-3 py-4 text-center text-gray-500 text-sm">Belum ada riwayat.</td></tr>`;
 
-            // Proses Copy ke Clipboard
+            document.getElementById('modal-nama').innerText = namaSiswa.toUpperCase();
+            document.getElementById('modal-bayar').innerText = formatRupiah(getStudentTotalBayar(namaSiswa));
+            document.getElementById('modal-tunggakan').innerText = formatRupiah(getStudentTotalTunggakan(namaSiswa));
+            
+            document.getElementById('modal-detail').classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        // Close outside click
+        document.getElementById('modal-detail').addEventListener('click', function(e) { if(e.target === this) closeModal('modal-detail'); });
+        document.getElementById('modal-admin-login').addEventListener('click', function(e) { if(e.target === this) closeModal('modal-admin-login'); });
+
+        function copyClassReport() {
+            const selectedKelas = document.getElementById('filter-kelas').value;
+            let validData = dataTunggakan.map(row => ({
+                nama: getCleanName(row),
+                kelas: getColValue(row, ["Kelas"]).trim(),
+                totalTunggakan: parseNumeric(getColValue(row, ["TOTAL TUNGGAKAN"]))
+            })).filter(item => item.nama && item.totalTunggakan > 0);
+
+            let label = "Semua Santri";
+            if(selectedKelas !== 'ALL') {
+                validData = validData.filter(item => item.kelas === selectedKelas);
+                label = `Kelas ${selectedKelas}`;
+            }
+
+            if(validData.length === 0) {
+                showToast("Tidak ada data untuk disalin.");
+                return;
+            }
+            validData.sort((a, b) => b.totalTunggakan - a.totalTunggakan);
+
+            // Format Teks sesuai permintaan (Tanpa nominal tunggakan)
+            let text = `Assalamualaikum Warahmatullahi Wabarakatuh\n\nBerikut kami sampaikan daftar nama santri (${label}) yang masih memiliki tunggakan Infaq/SPP pada bulan ini:\n\n`;
+            
+            validData.forEach((item, idx) => {
+                text += `${idx + 1}. ${item.nama}\n`;
+            });
+
+            text += `\nKami harap kepada Ayah/Bunda orang tua santri agar dapat melakukan pembayaran tepat waktu agar operasional dan kegiatan belajar mengajar dapat berjalan dengan lancar tanpa kendala.\n\nAtas perhatian dan kerjasamanya kami ucapkan terima kasih.\nWassalamualaikum Warahmatullahi Wabarakatuh`;
+
             const textarea = document.createElement('textarea');
             textarea.value = text;
             textarea.setAttribute('readonly', '');
@@ -537,78 +734,12 @@
             
             try {
                 document.execCommand('copy');
-                showToast("Laporan berhasil disalin ke Clipboard!");
+                showToast(`Laporan ${label} berhasil disalin!`);
             } catch (err) {
                 showToast("Gagal menyalin teks.");
             }
             document.body.removeChild(textarea);
         }
-
-        function getStudentTotalBayar(namaSiswa) {
-            let total = 0;
-            const namaLower = namaSiswa.toLowerCase();
-            dataPembayaran.forEach(row => {
-                if(getCleanName(row).toLowerCase() === namaLower) {
-                    // Update: ambil dari kolom PEMBAYARAN 
-                    total += parseNumeric(getColValue(row, ["PEMBAYARAN", "Jumlah", "Nominal", "Bayar"]));
-                }
-            });
-            return total;
-        }
-
-        function getStudentTotalTunggakan(namaSiswa) {
-            let total = 0;
-            const namaLower = namaSiswa.toLowerCase();
-            const row = dataTunggakan.find(r => getCleanName(r).toLowerCase() === namaLower);
-            if(row) {
-                total = parseNumeric(getColValue(row, ["TOTAL TUNGGAKAN", "Tunggakan"]));
-            }
-            return total > 0 ? total : 0; // Pastikan tidak memunculkan minus di profil
-        }
-
-        function openModal(namaSiswa) {
-            const tbody = document.getElementById('modal-tbody-rincian');
-            tbody.innerHTML = "";
-            let counter = 1;
-
-            const namaLower = namaSiswa.toLowerCase();
-            dataPembayaran.forEach(row => {
-                if(getCleanName(row).toLowerCase() === namaLower) {
-                    const tgl = getColValue(row, ["Tanggal", "Tgl"]);
-                    const bulan = getColValue(row, ["Bulan", "Keterangan"]);
-                    // Update ambil PEMBAYARAN
-                    const jumlah = parseNumeric(getColValue(row, ["PEMBAYARAN", "Jumlah", "Nominal"]));
-                    
-                    const tr = document.createElement('tr');
-                    tr.className = "border-b border-gray-100 hover:bg-gray-50";
-                    tr.innerHTML = `
-                        <td class="px-3 py-2 text-center text-gray-500">${counter++}</td>
-                        <td class="px-3 py-2">${tgl}</td>
-                        <td class="px-3 py-2">${bulan}</td>
-                        <td class="px-3 py-2 text-right font-semibold">${formatRupiah(jumlah)}</td>
-                    `;
-                    tbody.appendChild(tr);
-                }
-            });
-
-            if(counter === 1) {
-                tbody.innerHTML = `<tr><td colspan="4" class="px-3 py-4 text-center text-gray-500 text-sm">Belum ada riwayat pembayaran.</td></tr>`;
-            }
-
-            document.getElementById('modal-nama').innerText = namaSiswa.toUpperCase();
-            document.getElementById('modal-bayar').innerText = formatRupiah(getStudentTotalBayar(namaSiswa));
-            document.getElementById('modal-tunggakan').innerText = formatRupiah(getStudentTotalTunggakan(namaSiswa));
-            
-            document.getElementById('modal-detail').classList.remove('hidden');
-        }
-
-        function closeModal() {
-            document.getElementById('modal-detail').classList.add('hidden');
-        }
-
-        document.getElementById('modal-detail').addEventListener('click', function(e) {
-            if(e.target === this) closeModal();
-        });
 
     </script>
 </body>
