@@ -238,12 +238,6 @@
                     </div>
                 </div>
 
-                <!-- Status Pembayaran Bulanan (Checklist) -->
-                <h4 class="font-bold text-gray-700 mb-2 border-b-2 border-ygreen-200 pb-1 text-xs sm:text-base"><i class="fas fa-calendar-check mr-1"></i> Status SPP (Jul '26 - Jun '27)</h4>
-                <div id="modal-checklist-bulan" class="grid grid-cols-4 sm:grid-cols-6 gap-1.5 mb-4">
-                    <!-- Populated via JS -->
-                </div>
-
                 <h4 class="font-bold text-gray-700 mb-2 border-b-2 border-ygreen-200 pb-1 text-xs sm:text-base"><i class="fas fa-history mr-1"></i> Riwayat Pembayaran</h4>
                 <div class="rounded-lg border border-gray-200 shadow-sm w-full"> <!-- overflow hidden/removed to force fit -->
                     <table class="w-full text-left text-[8px] sm:text-sm" style="table-layout: fixed; word-wrap: break-word;">
@@ -343,12 +337,11 @@
                 populateKelasFilter();
                 renderTunggakanTable();
                 
-                document.getElementById('global-loader').style.opacity = '0';
-                setTimeout(() => {
-                    document.getElementById('global-loader').classList.add('hidden');
-                    document.getElementById('main-content').classList.remove('hidden');
-                    document.getElementById('no-data-cari').classList.remove('hidden');
-                }, 300);
+                // Hapus jeda animasi lambat, tampilkan secara instan (Dipercepat)
+                document.getElementById('global-loader').classList.add('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+                document.getElementById('no-data-cari').classList.remove('hidden');
+                
             }).catch(e => {
                 alert("Koneksi gagal, silakan refresh halaman.");
             });
@@ -620,21 +613,8 @@
             tbody.innerHTML = ""; let counter = 1;
             const nl = namaSiswa.toLowerCase();
             
-            // Konfigurasi Bulan (Juli - Juni)
-            const bulanList = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
-            let paidMonths = {};
-            bulanList.forEach(b => paidMonths[b] = false);
-
             dataPembayaran.forEach(r => {
                 if(getCleanName(r).toLowerCase() === nl) {
-                    // Update Checklist Bulan
-                    const rowBulan = getColValue(r, ["BULAN", "Bulan"]);
-                    if(rowBulan) {
-                        bulanList.forEach(b => {
-                             if(rowBulan.toLowerCase().includes(b.toLowerCase())) paidMonths[b] = true;
-                        });
-                    }
-
                     // Ambil Data Rincian Sesuai Permintaan
                     const noBukti = getColValue(r, ["NO", "No"]) || counter++;
                     const hal = getColValue(r, ["HALAMAN", "Halaman"]);
@@ -658,26 +638,6 @@
             });
 
             if(tbody.innerHTML === "") tbody.innerHTML = `<tr><td colspan="6" class="px-3 py-4 text-center text-gray-500 text-xs">Belum ada riwayat pembayaran.</td></tr>`;
-
-            // Render Checklist HTML
-            const checklistContainer = document.getElementById('modal-checklist-bulan');
-            checklistContainer.innerHTML = '';
-            bulanList.forEach(b => {
-                 const shortName = b.substring(0,3).toUpperCase();
-                 if(paidMonths[b]) {
-                     checklistContainer.innerHTML += `
-                        <div class="bg-green-50 border border-green-400 rounded py-1 flex flex-col items-center justify-center shadow-sm">
-                            <span class="text-[9px] sm:text-[11px] font-bold text-green-800">${shortName}</span>
-                            <i class="fas fa-check-circle text-green-500 text-[10px] sm:text-xs mt-0.5"></i>
-                        </div>`;
-                 } else {
-                     checklistContainer.innerHTML += `
-                        <div class="bg-gray-50 border border-gray-200 rounded py-1 flex flex-col items-center justify-center">
-                            <span class="text-[9px] sm:text-[11px] font-semibold text-gray-400">${shortName}</span>
-                            <i class="fas fa-times-circle text-gray-300 text-[10px] sm:text-xs mt-0.5"></i>
-                        </div>`;
-                 }
-            });
 
             const rowT = dataTunggakan.find(r => getCleanName(r).toLowerCase() === nl);
             document.getElementById('modal-nama').innerText = namaSiswa.toUpperCase();
