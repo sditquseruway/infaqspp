@@ -374,14 +374,23 @@
         }
         function getColValue(rowObj, possibleNames) {
             const keys = Object.keys(rowObj);
+            // Prioritas 1: Pencarian kata kunci yang sama persis (Exact Match)
             for (let name of possibleNames) {
                 const found = keys.find(k => k.trim().toLowerCase() === name.toLowerCase());
-                if (found && rowObj[found]) return rowObj[found];
+                if (found && rowObj[found] !== undefined && rowObj[found] !== "") return rowObj[found];
+            }
+            // Prioritas 2: Pencarian kata kunci fleksibel (Mendeteksi "NAMA SANTRI 2026" dari kata "Nama Santri")
+            for (let name of possibleNames) {
+                if (name.length > 2) { 
+                    const found = keys.find(k => k.trim().toLowerCase().includes(name.toLowerCase()));
+                    if (found && rowObj[found] !== undefined && rowObj[found] !== "") return rowObj[found];
+                }
             }
             return "";
         }
         function getCleanName(rowObj) {
-            return getColValue(rowObj, ["Nama Santri", "Nama Siswa", "Nama"]).trim();
+            // Sudah diperbarui dengan judul kolom spesifik
+            return getColValue(rowObj, ["NAMA SANTRI 2026", "Nama Santri", "Nama Siswa", "Nama"]).trim();
         }
 
         function showToast(msg) {
