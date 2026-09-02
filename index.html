@@ -237,15 +237,24 @@
                         <p class="text-sm sm:text-xl font-extrabold text-red-800 mt-1 break-all" id="modal-tunggakan">Rp 0</p>
                     </div>
                 </div>
-                <h4 class="font-bold text-gray-700 mb-2 border-b-2 border-ygreen-200 pb-1 text-xs sm:text-base"><i class="fas fa-history mr-1"></i> Rincian Pembayaran</h4>
-                <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
-                    <table class="w-full text-left text-[10px] sm:text-sm">
+
+                <!-- Status Pembayaran Bulanan (Checklist) -->
+                <h4 class="font-bold text-gray-700 mb-2 border-b-2 border-ygreen-200 pb-1 text-xs sm:text-base"><i class="fas fa-calendar-check mr-1"></i> Status SPP (Jul '26 - Jun '27)</h4>
+                <div id="modal-checklist-bulan" class="grid grid-cols-4 sm:grid-cols-6 gap-1.5 mb-4">
+                    <!-- Populated via JS -->
+                </div>
+
+                <h4 class="font-bold text-gray-700 mb-2 border-b-2 border-ygreen-200 pb-1 text-xs sm:text-base"><i class="fas fa-history mr-1"></i> Riwayat Pembayaran</h4>
+                <div class="rounded-lg border border-gray-200 shadow-sm w-full"> <!-- overflow hidden/removed to force fit -->
+                    <table class="w-full text-left text-[8px] sm:text-sm" style="table-layout: fixed; word-wrap: break-word;">
                         <thead class="bg-gray-100 text-gray-600 uppercase">
                             <tr>
-                                <th class="px-2 py-2 text-center w-8">No</th>
-                                <th class="px-2 py-2">Tgl</th>
-                                <th class="px-2 py-2">Bulan/Ket</th>
-                                <th class="px-2 py-2 text-right">Jumlah</th>
+                                <th class="px-1 py-2 text-center w-[6%]">No</th>
+                                <th class="px-1 py-2 text-center w-[9%]">Hal</th>
+                                <th class="px-1 py-2 w-[18%]">Tanggal</th>
+                                <th class="px-1 py-2 w-[26%]">Ket. Bayar</th>
+                                <th class="px-1 py-2 w-[21%]">Keterangan</th>
+                                <th class="px-1 py-2 text-right w-[20%]">Jumlah</th>
                             </tr>
                         </thead>
                         <tbody id="modal-tbody-rincian" class="bg-white">
@@ -602,22 +611,64 @@
             tbody.innerHTML = ""; let counter = 1;
             const nl = namaSiswa.toLowerCase();
             
+            // Konfigurasi Bulan (Juli - Juni)
+            const bulanList = ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
+            let paidMonths = {};
+            bulanList.forEach(b => paidMonths[b] = false);
+
             dataPembayaran.forEach(r => {
                 if(getCleanName(r).toLowerCase() === nl) {
-                    const txtKet = [getColValue(r, ["Bulan"]), getColValue(r, ["Keterangan Bayar", "Ket"])].filter(Boolean).join(" - ");
+                    // Update Checklist Bulan
+                    const rowBulan = getColValue(r, ["BULAN", "Bulan"]);
+                    if(rowBulan) {
+                        bulanList.forEach(b => {
+                             if(rowBulan.toLowerCase().includes(b.toLowerCase())) paidMonths[b] = true;
+                        });
+                    }
+
+                    // Ambil Data Rincian Sesuai Permintaan
+                    const noBukti = getColValue(r, ["NO", "No"]) || counter++;
+                    const hal = getColValue(r, ["HALAMAN", "Halaman"]);
+                    const tgl = getColValue(r, ["TANGGAL", "Tanggal", "Tgl"]);
+                    const ketBayar = getColValue(r, ["KETERANGAN BAYAR"]);
+                    const ketDetail = getColValue(r, ["KETERANGAN"]);
+                    const bayar = formatRupiah(parseNumeric(getColValue(r, ["PEMBAYARAN"])));
+
                     const tr = document.createElement('tr');
                     tr.className = "border-b border-gray-100 hover:bg-gray-50";
                     tr.innerHTML = `
-                        <td class="px-2 py-1.5 sm:px-3 sm:py-2 text-center text-gray-500 w-8">${counter++}</td>
-                        <td class="px-2 py-1.5 sm:px-3 sm:py-2 whitespace-nowrap text-[9px] sm:text-sm">${getColValue(r, ["Tanggal", "Tgl"])}</td>
-                        <td class="px-2 py-1.5 sm:px-3 sm:py-2 text-[9px] sm:text-sm">${txtKet}</td>
-                        <td class="px-2 py-1.5 sm:px-3 sm:py-2 text-right font-semibold text-green-700 text-[9px] sm:text-sm">${formatRupiah(parseNumeric(getColValue(r, ["PEMBAYARAN"])))}</td>
+                        <td class="px-1 py-1.5 sm:px-3 sm:py-2 text-center text-gray-500 align-top font-medium">${noBukti}</td>
+                        <td class="px-1 py-1.5 sm:px-3 sm:py-2 text-center align-top text-gray-600">${hal || '-'}</td>
+                        <td class="px-1 py-1.5 sm:px-3 sm:py-2 align-top text-gray-700">${tgl}</td>
+                        <td class="px-1 py-1.5 sm:px-3 sm:py-2 align-top font-semibold text-ygreen-700">${ketBayar || '-'}</td>
+                        <td class="px-1 py-1.5 sm:px-3 sm:py-2 align-top text-gray-600 italic">${ketDetail || '-'}</td>
+                        <td class="px-1 py-1.5 sm:px-3 sm:py-2 text-right font-bold text-green-700 align-top">${bayar}</td>
                     `;
                     tbody.appendChild(tr);
                 }
             });
 
-            if(counter === 1) tbody.innerHTML = `<tr><td colspan="4" class="px-3 py-4 text-center text-gray-500 text-xs">Belum ada riwayat.</td></tr>`;
+            if(tbody.innerHTML === "") tbody.innerHTML = `<tr><td colspan="6" class="px-3 py-4 text-center text-gray-500 text-xs">Belum ada riwayat pembayaran.</td></tr>`;
+
+            // Render Checklist HTML
+            const checklistContainer = document.getElementById('modal-checklist-bulan');
+            checklistContainer.innerHTML = '';
+            bulanList.forEach(b => {
+                 const shortName = b.substring(0,3).toUpperCase();
+                 if(paidMonths[b]) {
+                     checklistContainer.innerHTML += `
+                        <div class="bg-green-50 border border-green-400 rounded py-1 flex flex-col items-center justify-center shadow-sm">
+                            <span class="text-[9px] sm:text-[11px] font-bold text-green-800">${shortName}</span>
+                            <i class="fas fa-check-circle text-green-500 text-[10px] sm:text-xs mt-0.5"></i>
+                        </div>`;
+                 } else {
+                     checklistContainer.innerHTML += `
+                        <div class="bg-gray-50 border border-gray-200 rounded py-1 flex flex-col items-center justify-center">
+                            <span class="text-[9px] sm:text-[11px] font-semibold text-gray-400">${shortName}</span>
+                            <i class="fas fa-times-circle text-gray-300 text-[10px] sm:text-xs mt-0.5"></i>
+                        </div>`;
+                 }
+            });
 
             const rowT = dataTunggakan.find(r => getCleanName(r).toLowerCase() === nl);
             document.getElementById('modal-nama').innerText = namaSiswa.toUpperCase();
