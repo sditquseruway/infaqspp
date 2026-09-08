@@ -223,8 +223,27 @@
                 </div>
             </div>
 
+            <!-- MENU ADMIN -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                <button onclick="openAdminMenu('pendapatan')" id="menu-pendapatan" class="admin-menu-btn bg-white rounded-xl shadow-md border-t-4 border-ygreen-600 p-4 text-left hover:shadow-lg transition">
+                    <i class="fas fa-th-large text-ygreen-600 text-xl mb-1"></i>
+                    <h3 class="font-bold text-sm sm:text-base text-gray-800">Rincian Pendapatan</h3>
+                    <p class="text-[10px] sm:text-xs text-gray-500">Per jalur masuk santri</p>
+                </button>
+                <button onclick="openAdminMenu('keuangan')" id="menu-keuangan" class="admin-menu-btn bg-white rounded-xl shadow-md border-t-4 border-yyellow-400 p-4 text-left hover:shadow-lg transition">
+                    <i class="fas fa-file-invoice-dollar text-yyellow-500 text-xl mb-1"></i>
+                    <h3 class="font-bold text-sm sm:text-base text-gray-800">Laporan Keuangan</h3>
+                    <p class="text-[10px] sm:text-xs text-gray-500">Rekap pemasukan &amp; pengeluaran</p>
+                </button>
+                <button onclick="openAdminMenu('bku')" id="menu-bku" class="admin-menu-btn bg-white rounded-xl shadow-md border-t-4 border-red-500 p-4 text-left hover:shadow-lg transition">
+                    <i class="fas fa-book text-red-500 text-xl mb-1"></i>
+                    <h3 class="font-bold text-sm sm:text-base text-gray-800">Cek BKU Pengeluaran</h3>
+                    <p class="text-[10px] sm:text-xs text-gray-500">Detail pengeluaran per bulan</p>
+                </button>
+            </div>
+
             <!-- Grid Card Per Jalur Masuk -->
-            <div class="bg-white rounded-xl shadow-md border-t-4 border-ygreen-600 p-4 sm:p-5 bg-opacity-95">
+            <div id="panel-pendapatan" class="admin-panel bg-white rounded-xl shadow-md border-t-4 border-ygreen-600 p-4 sm:p-5 bg-opacity-95 hidden">
                 <h2 class="text-base sm:text-lg font-bold text-gray-800 mb-4 border-b pb-2"><i class="fas fa-th-large text-ygreen-600 mr-2"></i> Rincian Pendapatan Berdasarkan Jalur Masuk</h2>
                 
                 <div id="admin-cards-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -233,7 +252,7 @@
             </div>
 
             <!-- LAPORAN KEUANGAN -->
-            <div class="bg-white rounded-xl shadow-md border-t-4 border-yyellow-400 p-4 sm:p-5 bg-opacity-95 mt-4">
+            <div id="panel-keuangan" class="admin-panel bg-white rounded-xl shadow-md border-t-4 border-yyellow-400 p-4 sm:p-5 bg-opacity-95 hidden">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-3 mb-4">
                     <div>
                         <h2 class="text-base sm:text-lg font-bold text-gray-800"><i class="fas fa-file-invoice-dollar text-yyellow-500 mr-2"></i> Rekapitulasi Laporan Keuangan</h2>
@@ -252,6 +271,25 @@
                     <i class="fas fa-copy mr-1"></i> Salin Laporan
                 </button>
             </div>
+
+            <!-- HALAMAN BKU PENGELUARAN -->
+            <div id="panel-bku" class="admin-panel bg-white rounded-xl shadow-md border-t-4 border-red-500 p-4 sm:p-5 bg-opacity-95 hidden">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-3 mb-4">
+                    <div>
+                        <h2 class="text-base sm:text-lg font-bold text-gray-800"><i class="fas fa-book text-red-500 mr-2"></i> Buku Kas Umum &mdash; Pengeluaran</h2>
+                        <p class="text-[10px] sm:text-xs text-gray-500">Rincian seluruh transaksi pengeluaran per bulan</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label for="filter-bulan-bku" class="text-xs sm:text-sm font-semibold text-gray-700">Bulan:</label>
+                        <select id="filter-bulan-bku" class="border border-gray-300 rounded p-1.5 text-xs sm:text-sm font-semibold text-red-700 outline-none focus:ring-1 focus:ring-red-400"></select>
+                    </div>
+                </div>
+                <div id="bku-status" class="text-xs text-gray-500 mb-2 hidden">Memuat data BKU...</div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border border-gray-300 text-[10px] sm:text-sm" id="tabel-bku"></table>
+                </div>
+            </div>
+
         </section>
 
     </main>
@@ -572,6 +610,74 @@
                 `;
             });
             renderLaporanKeuangan();
+            renderBKUPengeluaran();
+        }
+
+        /* Menu Admin: buka panel sesuai menu yang diklik */
+        function openAdminMenu(nama) {
+            const panels = { pendapatan: 'panel-pendapatan', keuangan: 'panel-keuangan', bku: 'panel-bku' };
+            const aktif = document.getElementById(panels[nama]);
+            const sudahTampil = aktif && !aktif.classList.contains('hidden');
+            Object.values(panels).forEach(id => document.getElementById(id).classList.add('hidden'));
+            document.querySelectorAll('.admin-menu-btn').forEach(b => b.classList.remove('ring-2', 'ring-ygreen-500'));
+            if (!sudahTampil) {
+                aktif.classList.remove('hidden');
+                document.getElementById('menu-' + nama).classList.add('ring-2', 'ring-ygreen-500');
+                if (nama === 'keuangan') renderLaporanKeuangan();
+                if (nama === 'bku') renderBKUPengeluaran();
+                aktif.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        /* Halaman BKU Pengeluaran per bulan */
+        function renderBKUPengeluaran() {
+            const sel = document.getElementById('filter-bulan-bku');
+            const tabel = document.getElementById('tabel-bku');
+            if (!sel || !tabel) return;
+
+            const bulanList = Array.from(new Set(dataBKU.filter(r => r.pengeluaran > 0).map(r => r.bulan)))
+                .sort((a, b) => bulanSortKey(b) - bulanSortKey(a));
+            if (sel.dataset.filled !== String(bulanList.length)) {
+                const prev = sel.value;
+                sel.innerHTML = "";
+                bulanList.forEach(b => sel.appendChild(new Option(b, b)));
+                sel.dataset.filled = String(bulanList.length);
+                if (prev && bulanList.includes(prev)) sel.value = prev;
+                sel.onchange = renderBKUPengeluaran;
+            }
+            const statusEl = document.getElementById('bku-status');
+            if (statusEl) statusEl.classList.toggle('hidden', bkuLoaded);
+            const bulan = sel.value || bulanList[0];
+            if (!bulan) { tabel.innerHTML = '<tr><td class="p-3 text-gray-500">Data pengeluaran belum tersedia.</td></tr>'; return; }
+
+            const rows = dataBKU.filter(r => r.bulan === bulan && r.pengeluaran > 0);
+            const total = rows.reduce((a, r) => a + r.pengeluaran, 0);
+            tabel.innerHTML = `
+                <thead class="bg-red-600 text-white">
+                    <tr>
+                        <th class="border border-gray-300 px-2 py-1 text-center w-8">No</th>
+                        <th class="border border-gray-300 px-2 py-1">Tanggal</th>
+                        <th class="border border-gray-300 px-2 py-1">Rincian</th>
+                        <th class="border border-gray-300 px-2 py-1">Penerima</th>
+                        <th class="border border-gray-300 px-2 py-1">Keterangan</th>
+                        <th class="border border-gray-300 px-2 py-1 text-right">Pengeluaran</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows.map((r, i) => `
+                        <tr class="${i % 2 ? 'bg-gray-50' : 'bg-white'}">
+                            <td class="border border-gray-300 px-2 py-1 text-center text-gray-500">${i + 1}</td>
+                            <td class="border border-gray-300 px-2 py-1 whitespace-nowrap">${r.tanggal || '-'}</td>
+                            <td class="border border-gray-300 px-2 py-1">${r.rincian || '-'}</td>
+                            <td class="border border-gray-300 px-2 py-1">${r.penerima || '-'}</td>
+                            <td class="border border-gray-300 px-2 py-1">${r.keterangan || '-'}</td>
+                            <td class="border border-gray-300 px-2 py-1 text-right font-bold text-red-700 whitespace-nowrap">${formatRupiah(r.pengeluaran)}</td>
+                        </tr>`).join('') || '<tr><td colspan="6" class="border border-gray-300 px-2 py-3 text-center text-gray-500">Tidak ada pengeluaran pada bulan ini.</td></tr>'}
+                    <tr class="bg-gray-100">
+                        <td colspan="5" class="border border-gray-300 px-2 py-1 font-bold text-right">TOTAL PENGELUARAN ${bulan}</td>
+                        <td class="border border-gray-300 px-2 py-1 text-right font-extrabold text-red-700 whitespace-nowrap">${formatRupiah(total)}</td>
+                    </tr>
+                </tbody>`;
         }
 
         /* ===== LAPORAN KEUANGAN (Pemasukan: Billing Transaksi | Pengeluaran: BKU) ===== */
@@ -614,7 +720,8 @@
                 }
                 bkuLoaded = true;
                 renderLaporanKeuangan();
-            }).catch(() => { bkuLoaded = true; renderLaporanKeuangan(); });
+                renderBKUPengeluaran();
+            }).catch(() => { bkuLoaded = true; renderLaporanKeuangan(); renderBKUPengeluaran(); });
         }
 
         function daftarBulanKeuangan() {
