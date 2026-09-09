@@ -59,7 +59,8 @@
                 </div>
                 <div>
                     <h1 class="text-lg sm:text-2xl font-bold text-white tracking-wide leading-tight">Laporan Infaq Santri</h1>
-                    <p class="text-ygreen-100 text-[10px] sm:text-xs leading-tight">Yayasan Huda Wan Nurul Qurani<br>TK-SD-SMP International Tahfizh Quran</p>
+                    <p class="text-white text-[10px] sm:text-xs leading-tight font-semibold">Yayasan Huda Wan Nurul Qurani<br>TK-SD-SMP International Tahfizh Quran</p>
+
                 </div>
             </div>
             <div class="flex items-center gap-2">
@@ -223,7 +224,7 @@
             </div>
 
             <!-- MENU ADMIN -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-4">
                 <button onclick="openAdminMenu('pendapatan')" id="menu-pendapatan" class="admin-menu-btn bg-white rounded-xl shadow-md border-t-4 border-ygreen-600 p-4 text-left hover:shadow-lg transition">
                     <i class="fas fa-th-large text-ygreen-600 text-xl mb-1"></i>
                     <h3 class="font-bold text-sm sm:text-base text-gray-800">Rincian Pendapatan</h3>
@@ -239,6 +240,12 @@
                     <h3 class="font-bold text-sm sm:text-base text-gray-800">Cek BKU Pengeluaran</h3>
                     <p class="text-[10px] sm:text-xs text-gray-500">Detail pengeluaran per bulan</p>
                 </button>
+                <button onclick="openAdminMenu('cetak')" id="menu-cetak" class="admin-menu-btn bg-white rounded-xl shadow-md border-t-4 border-blue-500 p-4 text-left hover:shadow-lg transition">
+                    <i class="fas fa-print text-blue-500 text-xl mb-1"></i>
+                    <h3 class="font-bold text-sm sm:text-base text-gray-800">Cetak Laporan</h3>
+                    <p class="text-[10px] sm:text-xs text-gray-500">Cetak / unduh PDF gabungan</p>
+                </button>
+
             </div>
 
             <!-- Grid Card Per Jalur Masuk -->
@@ -266,9 +273,16 @@
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border border-gray-300 text-[10px] sm:text-sm" id="tabel-keuangan"></table>
                 </div>
-                <button onclick="copyLaporanKeuangan()" class="mt-3 bg-yyellow-400 hover:bg-yyellow-500 text-ygreen-900 px-3 py-1.5 rounded font-bold text-xs sm:text-sm shadow-sm">
-                    <i class="fas fa-copy mr-1"></i> Salin Laporan
-                </button>
+                <div class="mt-3 flex flex-wrap gap-2">
+                    <button onclick="copyLaporanKeuangan()" class="bg-yyellow-400 hover:bg-yyellow-500 text-ygreen-900 px-3 py-1.5 rounded font-bold text-xs sm:text-sm shadow-sm">
+                        <i class="fas fa-copy mr-1"></i> Salin Laporan
+                    </button>
+                    <button onclick="unduhPDFKeuangan()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded font-bold text-xs sm:text-sm shadow-sm">
+                        <i class="fas fa-file-pdf mr-1"></i> Unduh PDF
+                    </button>
+                    <span class="text-[10px] sm:text-xs text-gray-500 self-center"><i class="fas fa-hand-pointer mr-1"></i>Klik baris pengeluaran untuk melihat rinciannya</span>
+                </div>
+
             </div>
 
             <!-- HALAMAN BKU PENGELUARAN -->
@@ -288,6 +302,37 @@
                     <table class="w-full text-left border border-gray-300 text-[10px] sm:text-sm" id="tabel-bku"></table>
                 </div>
             </div>
+
+            <!-- PANEL CETAK LAPORAN -->
+            <div id="panel-cetak" class="admin-panel bg-white rounded-xl shadow-md border-t-4 border-blue-500 p-4 sm:p-5 bg-opacity-95 hidden">
+                <div class="border-b pb-3 mb-4">
+                    <h2 class="text-base sm:text-lg font-bold text-gray-800"><i class="fas fa-print text-blue-500 mr-2"></i> Cetak Laporan (PDF)</h2>
+                    <p class="text-[10px] sm:text-xs text-gray-500">Pilih jenis laporan dan bulan (bisa lebih dari satu), lalu cetak / simpan sebagai PDF.</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <h3 class="font-bold text-xs sm:text-sm text-gray-700 mb-2">Jenis Laporan</h3>
+                        <label class="flex items-center gap-2 text-xs sm:text-sm mb-1"><input type="checkbox" class="cetak-jenis" value="pendapatan" checked> Laporan Pendapatan Tetap Bulanan</label>
+                        <label class="flex items-center gap-2 text-xs sm:text-sm mb-1"><input type="checkbox" class="cetak-jenis" value="keuangan" checked> Laporan Keuangan per Bulan</label>
+                        <label class="flex items-center gap-2 text-xs sm:text-sm mb-1"><input type="checkbox" class="cetak-jenis" value="tunggakan" checked> Rekap Santri Belum Bayar (Tunggakan)</label>
+                        <label class="flex items-center gap-2 text-xs sm:text-sm mb-1"><input type="checkbox" class="cetak-jenis" value="teladan" checked> Rekap Santri Teladan Bayar SPP</label>
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="font-bold text-xs sm:text-sm text-gray-700">Pilih Bulan</h3>
+                            <div class="flex gap-2">
+                                <button onclick="pilihSemuaBulanCetak(true)" class="text-[10px] sm:text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded">Pilih Semua</button>
+                                <button onclick="pilihSemuaBulanCetak(false)" class="text-[10px] sm:text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded">Kosongkan</button>
+                            </div>
+                        </div>
+                        <div id="cetak-bulan-list" class="max-h-52 overflow-y-auto border border-gray-200 rounded p-2 grid grid-cols-1 sm:grid-cols-2 gap-1"></div>
+                    </div>
+                </div>
+                <button onclick="cetakLaporanGabungan()" class="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-bold text-xs sm:text-sm shadow">
+                    <i class="fas fa-file-pdf mr-1"></i> Cetak / Simpan PDF
+                </button>
+            </div>
+
 
         </section>
 
@@ -350,6 +395,19 @@
             </div>
         </div>
     </div>
+    <!-- Modal Detail Pengeluaran per Kategori -->
+    <div id="modal-pengeluaran" class="fixed inset-0 bg-gray-900 bg-opacity-70 z-50 hidden flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden modal-open">
+            <div class="bg-red-600 px-4 sm:px-6 py-3 flex justify-between items-center text-white">
+                <h3 class="font-bold text-sm sm:text-lg"><i class="fas fa-receipt mr-2 text-yyellow-400"></i> <span id="modal-pengeluaran-judul">-</span></h3>
+                <button onclick="closeModal('modal-pengeluaran')" class="text-white hover:text-yyellow-300 transition text-2xl focus:outline-none ml-2">&times;</button>
+            </div>
+            <div class="p-3 sm:p-5 overflow-y-auto flex-grow bg-gray-50">
+                <table class="w-full text-left border border-gray-300 text-[10px] sm:text-sm" id="tabel-detail-pengeluaran"></table>
+            </div>
+        </div>
+    </div>
+
 
     <!-- Toast Notification -->
     <div id="toast" class="fixed bottom-4 right-4 bg-gray-900 bg-opacity-90 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg shadow-xl transform transition-transform translate-y-24 opacity-0 z-[100] pointer-events-none flex items-center max-w-[85vw]">
@@ -614,7 +672,7 @@
 
         /* Menu Admin: buka panel sesuai menu yang diklik */
         function openAdminMenu(nama) {
-            const panels = { pendapatan: 'panel-pendapatan', keuangan: 'panel-keuangan', bku: 'panel-bku' };
+            const panels = { pendapatan: 'panel-pendapatan', keuangan: 'panel-keuangan', bku: 'panel-bku', cetak: 'panel-cetak' };
             const aktif = document.getElementById(panels[nama]);
             const sudahTampil = aktif && !aktif.classList.contains('hidden');
             Object.values(panels).forEach(id => document.getElementById(id).classList.add('hidden'));
@@ -624,6 +682,8 @@
                 document.getElementById('menu-' + nama).classList.add('ring-2', 'ring-ygreen-500');
                 if (nama === 'keuangan') renderLaporanKeuangan();
                 if (nama === 'bku') renderBKUPengeluaran();
+                if (nama === 'cetak') renderCetakBulanList();
+
                 aktif.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }
@@ -809,7 +869,14 @@
                         <td class="border border-gray-300 px-2 py-1 text-right font-extrabold text-green-700 whitespace-nowrap">${formatRupiah(d.totalMasuk)}</td>
                     </tr>
                     <tr><td colspan="4" class="bg-green-500 text-white px-2 py-1 font-bold">B. PENGELUARAN</td></tr>
-                    ${d.pengeluaran.length ? rowsHtml(d.pengeluaran, 'text-red-600') : '<tr><td colspan="4" class="border border-gray-300 px-2 py-2 text-center text-gray-500">Tidak ada pengeluaran pada periode ini.</td></tr>'}
+                    ${d.pengeluaran.length ? d.pengeluaran.map((i, n) => `
+                    <tr class="border-b border-gray-200 cursor-pointer hover:bg-yellow-50" onclick="showDetailPengeluaran('${bulan.replace(/'/g, "\\'")}','${i.label.replace(/'/g, "\\'")}')">
+                        <td class="border border-gray-300 px-2 py-1 text-center text-gray-500 w-8">${n + 1}</td>
+                        <td class="border border-gray-300 px-2 py-1 font-semibold text-red-600 underline decoration-dotted">${i.label} <i class="fas fa-chevron-right text-[8px] text-gray-400"></i></td>
+                        <td class="border border-gray-300 px-2 py-1 text-center w-6">:</td>
+                        <td class="border border-gray-300 px-2 py-1 text-right font-bold text-gray-800 whitespace-nowrap">${formatRupiah(i.nilai)}</td>
+                    </tr>`).join('') : '<tr><td colspan="4" class="border border-gray-300 px-2 py-2 text-center text-gray-500">Tidak ada pengeluaran pada periode ini.</td></tr>'}
+
                     <tr class="bg-gray-50">
                         <td class="border border-gray-300"></td>
                         <td class="border border-gray-300 px-2 py-1 font-bold">TOTAL</td>
@@ -836,6 +903,240 @@
                         <td class="border border-gray-300 px-2 py-1 text-right font-extrabold text-ygreen-800 text-xs sm:text-lg whitespace-nowrap">${formatRupiah(d.sisa)}</td>
                     </tr>
                 </tbody>`;
+        }
+
+        /* ===== DETAIL PENGELUARAN PER KATEGORI ===== */
+        function showDetailPengeluaran(bulan, kategori) {
+            const rows = dataBKU.filter(r => r.bulan === bulan && r.pengeluaran > 0 && r.keterangan.toUpperCase() === kategori.toUpperCase());
+            const total = rows.reduce((a, r) => a + r.pengeluaran, 0);
+            document.getElementById('modal-pengeluaran-judul').innerText = kategori + ' — ' + bulan;
+            document.getElementById('tabel-detail-pengeluaran').innerHTML = `
+                <thead class="bg-red-600 text-white">
+                    <tr>
+                        <th class="border border-gray-300 px-2 py-1 text-center w-8">No</th>
+                        <th class="border border-gray-300 px-2 py-1">Tanggal</th>
+                        <th class="border border-gray-300 px-2 py-1">Rincian</th>
+                        <th class="border border-gray-300 px-2 py-1">Penerima</th>
+                        <th class="border border-gray-300 px-2 py-1 text-right">Jumlah</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows.map((r, i) => `
+                        <tr class="${i % 2 ? 'bg-gray-50' : 'bg-white'}">
+                            <td class="border border-gray-300 px-2 py-1 text-center text-gray-500">${i + 1}</td>
+                            <td class="border border-gray-300 px-2 py-1 whitespace-nowrap">${r.tanggal || '-'}</td>
+                            <td class="border border-gray-300 px-2 py-1">${r.rincian || '-'}</td>
+                            <td class="border border-gray-300 px-2 py-1">${r.penerima || '-'}</td>
+                            <td class="border border-gray-300 px-2 py-1 text-right font-bold text-red-700 whitespace-nowrap">${formatRupiah(r.pengeluaran)}</td>
+                        </tr>`).join('') || '<tr><td colspan="5" class="border border-gray-300 px-2 py-3 text-center text-gray-500">Tidak ada rincian.</td></tr>'}
+                    <tr class="bg-gray-100">
+                        <td colspan="4" class="border border-gray-300 px-2 py-1 font-bold text-right">TOTAL</td>
+                        <td class="border border-gray-300 px-2 py-1 text-right font-extrabold text-red-700 whitespace-nowrap">${formatRupiah(total)}</td>
+                    </tr>
+                </tbody>`;
+            document.getElementById('modal-pengeluaran').classList.remove('hidden');
+        }
+
+        /* ===== CETAK / UNDUH PDF ===== */
+        const LOGO_YAYASAN = "https://i.ibb.co.com/W49zb9n3/logo-yayasan-Terbaru.png";
+
+        function kopLaporan() {
+            return `
+            <div class="kop">
+                <img src="${LOGO_YAYASAN}" alt="Logo Yayasan">
+                <div class="kop-teks">
+                    <h1>YAYASAN HUDA WAN NURUL QUR'ANI</h1>
+                    <h2>PKBM / KB-PAUD / TK - SD - SMP INTERNATIONAL TAHFIZH QURAN</h2>
+                    <p>Sekretariat: Kantor Yayasan Huda Wan Nurul Qur'ani &mdash; Bidang Keuangan</p>
+                </div>
+            </div>
+            <hr class="kop-garis">`;
+        }
+
+        function cetakHTML(judul, isi) {
+            const w = window.open('', '_blank');
+            if (!w) { showToast("Izinkan pop-up untuk mencetak."); return; }
+            w.document.write(`<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><title>${judul}</title>
+            <style>
+                * { box-sizing: border-box; }
+                body { font-family: Arial, Helvetica, sans-serif; color: #111; margin: 18px; font-size: 12px; }
+                .kop { display: flex; align-items: center; gap: 14px; }
+                .kop img { height: 74px; width: 74px; object-fit: contain; }
+                .kop-teks { text-align: center; flex: 1; }
+                .kop-teks h1 { margin: 0; font-size: 18px; letter-spacing: .5px; }
+                .kop-teks h2 { margin: 2px 0 0; font-size: 13px; font-weight: 600; }
+                .kop-teks p { margin: 3px 0 0; font-size: 10px; font-style: italic; }
+                .kop-garis { border: none; border-top: 3px double #14532d; margin: 8px 0 14px; }
+                h3.judul { text-align: center; margin: 0 0 4px; font-size: 15px; text-decoration: underline; }
+                p.sub { text-align: center; margin: 0 0 12px; font-size: 11px; }
+                table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+                th, td { border: 1px solid #999; padding: 4px 6px; }
+                th { background: #16a34a; color: #fff; font-size: 11px; }
+                td.num { text-align: right; white-space: nowrap; }
+                tr.sec td { background: #16a34a; color: #fff; font-weight: bold; }
+                tr.tot td { background: #f3f4f6; font-weight: bold; }
+                .ttd { margin-top: 24px; width: 100%; }
+                .ttd td { border: none; text-align: center; font-size: 11px; }
+                .spasi-ttd { height: 60px; }
+                section { page-break-after: always; }
+                section:last-child { page-break-after: auto; }
+                @media print { body { margin: 10mm; } }
+            </style></head><body>${isi}
+            <script>window.onload = function(){ setTimeout(function(){ window.print(); }, 500); };<\/script>
+            </body></html>`);
+            w.document.close();
+        }
+
+        function blokTtd() {
+            const hari = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+            return `<table class="ttd"><tr>
+                <td style="width:50%">Mengetahui,<br>Ketua Yayasan<div class="spasi-ttd"></div>(............................)</td>
+                <td style="width:50%">${hari}<br>Bendahara<div class="spasi-ttd"></div>(............................)</td>
+            </tr></table>`;
+        }
+
+        function htmlLaporanKeuangan(bulan) {
+            const d = hitungLaporan(bulan);
+            const baris = (items) => items.map((i, n) => `<tr><td style="width:30px;text-align:center">${n + 1}</td><td>${i.label}</td><td class="num">${formatRupiah(i.nilai)}</td></tr>`).join('');
+            return `<section>${kopLaporan()}
+                <h3 class="judul">REKAPITULASI LAPORAN KEUANGAN</h3>
+                <p class="sub">PERIODE : ${bulan}</p>
+                <table>
+                    <tr class="sec"><td colspan="3">A. PEMASUKAN</td></tr>
+                    ${baris(d.pemasukan)}
+                    <tr class="tot"><td></td><td>TOTAL PEMASUKAN</td><td class="num">${formatRupiah(d.totalMasuk)}</td></tr>
+                    <tr class="sec"><td colspan="3">B. PENGELUARAN</td></tr>
+                    ${d.pengeluaran.length ? baris(d.pengeluaran) : '<tr><td colspan="3" style="text-align:center">Tidak ada pengeluaran</td></tr>'}
+                    <tr class="tot"><td></td><td>TOTAL PENGELUARAN</td><td class="num">${formatRupiah(d.totalKeluar)}</td></tr>
+                    <tr class="sec"><td colspan="3">C. SISA SALDO</td></tr>
+                    <tr class="tot"><td></td><td>SISA SALDO</td><td class="num">${formatRupiah(d.sisa)}</td></tr>
+                </table>
+                ${blokTtd()}</section>`;
+        }
+
+        function unduhPDFKeuangan() {
+            const bulan = document.getElementById('filter-bulan-keuangan').value;
+            if (!bulan) { showToast("Data belum tersedia."); return; }
+            cetakHTML('Laporan Keuangan ' + bulan, htmlLaporanKeuangan(bulan));
+        }
+
+        function htmlPendapatanTetap() {
+            const grup = {};
+            let totalSemua = 0, totalSantri = 0;
+            dataTunggakan.forEach(row => {
+                const nama = getCleanName(row);
+                if (!nama) return;
+                let jalur = getColValue(row, ["Masuk Jalur", "Reg", "Jalur Masuk", "Jenjang"]).trim() || "Lainnya";
+                const bayar = parseNumeric(getColValue(row, ["Bayar Bulanan", "2Bayar Bulanan", "BAYAR BULANAN"]));
+                if (!grup[jalur]) grup[jalur] = { count: 0, sum: 0 };
+                grup[jalur].count++; grup[jalur].sum += bayar;
+                totalSemua += bayar; totalSantri++;
+            });
+            const rows = Object.keys(grup).sort().map((k, i) => `<tr><td style="text-align:center">${i + 1}</td><td>${k}</td><td style="text-align:center">${grup[k].count}</td><td class="num">${formatRupiah(grup[k].sum)}</td></tr>`).join('');
+            return `<section>${kopLaporan()}
+                <h3 class="judul">LAPORAN PENDAPATAN TETAP BULANAN</h3>
+                <p class="sub">Berdasarkan jalur masuk santri</p>
+                <table>
+                    <tr><th>No</th><th>Jalur Masuk</th><th>Jumlah Santri</th><th>Pendapatan / Bulan</th></tr>
+                    ${rows}
+                    <tr class="tot"><td colspan="2">TOTAL</td><td style="text-align:center">${totalSantri}</td><td class="num">${formatRupiah(totalSemua)}</td></tr>
+                </table>
+                ${blokTtd()}</section>`;
+        }
+
+        function htmlTunggakan() {
+            const list = dataTunggakan.map(r => ({
+                nama: getCleanName(r), kelas: getColValue(r, ["Kelas"]).trim(),
+                tg: parseNumeric(getColValue(r, ["TOTAL TUNGGAKAN"]))
+            })).filter(i => i.nama && i.tg > 0).sort((a, b) => b.tg - a.tg);
+            const total = list.reduce((a, i) => a + i.tg, 0);
+            return `<section>${kopLaporan()}
+                <h3 class="judul">REKAP SANTRI BELUM BAYAR (TUNGGAKAN)</h3>
+                <p class="sub">Jumlah santri menunggak: ${list.length} santri</p>
+                <table>
+                    <tr><th>No</th><th>Nama Santri</th><th>Kelas</th><th>Tunggakan</th></tr>
+                    ${list.map((i, n) => `<tr><td style="text-align:center">${n + 1}</td><td>${i.nama}</td><td style="text-align:center">${i.kelas || '-'}</td><td class="num">${formatRupiah(i.tg)}</td></tr>`).join('') || '<tr><td colspan="4" style="text-align:center">Tidak ada tunggakan</td></tr>'}
+                    <tr class="tot"><td colspan="3">TOTAL TUNGGAKAN</td><td class="num">${formatRupiah(total)}</td></tr>
+                </table>
+                ${blokTtd()}</section>`;
+        }
+
+        /* Poin santri teladan:
+           bayar tgl 1-5 = 5 poin, tgl 6-10 = 3 poin, tgl 11-20 = 1 poin, > 20 = 0 poin
+           bonus 3 poin bila pembayaran berketerangan LUNAS
+           dikurangi 5 poin bila santri masih punya tunggakan */
+        function ambilTanggalHari(str) {
+            const m = String(str || "").match(/\d{1,2}/);
+            return m ? parseInt(m[0], 10) : 0;
+        }
+        function hitungTeladan(bulan) {
+            const map = {};
+            dataPembayaran.forEach(r => {
+                const b = normBulan(getColValue(r, ["BULAN"]));
+                if (bulan && b !== bulan) return;
+                const nama = getCleanName(r);
+                if (!nama) return;
+                const jml = parseNumeric(getColValue(r, ["PEMBAYARAN"]));
+                if (jml <= 0) return;
+                const hari = ambilTanggalHari(getColValue(r, ["TANGGAL", "Tanggal", "Tgl"]));
+                let poin = hari >= 1 && hari <= 5 ? 5 : hari <= 10 ? 3 : hari <= 20 ? 1 : 0;
+                const ket = (getColValue(r, ["KETERANGAN BAYAR"]) + " " + getColValue(r, ["KETERANGAN"])).toUpperCase();
+                if (ket.includes("LUNAS")) poin += 3;
+                if (!map[nama]) map[nama] = { nama, poin: 0, total: 0, tepat: 0, trx: 0, kelas: "" };
+                map[nama].poin += poin; map[nama].total += jml; map[nama].trx++;
+                if (hari >= 1 && hari <= 5) map[nama].tepat++;
+            });
+            Object.values(map).forEach(s => {
+                const rowT = dataTunggakan.find(r => getCleanName(r).toLowerCase() === s.nama.toLowerCase());
+                s.kelas = rowT ? getColValue(rowT, ["Kelas"]).trim() : "";
+                const tg = rowT ? parseNumeric(getColValue(rowT, ["TOTAL TUNGGAKAN"])) : 0;
+                if (tg > 0) s.poin -= 5;
+                s.tunggakan = tg;
+            });
+            return Object.values(map).sort((a, b) => b.poin - a.poin || b.total - a.total).slice(0, 30);
+        }
+
+        function htmlTeladan(bulan) {
+            const list = hitungTeladan(bulan);
+            return `<section>${kopLaporan()}
+                <h3 class="judul">REKAP SANTRI TELADAN PEMBAYARAN SPP</h3>
+                <p class="sub">Periode : ${bulan || 'SELURUH BULAN'} &mdash; Penilaian: bayar tgl 1-5 (5 poin), 6-10 (3 poin), 11-20 (1 poin), bonus LUNAS (3 poin), tunggakan (-5 poin)</p>
+                <table>
+                    <tr><th>Peringkat</th><th>Nama Santri</th><th>Kelas</th><th>Bayar Tepat Waktu</th><th>Total Bayar</th><th>Poin</th></tr>
+                    ${list.map((s, n) => `<tr><td style="text-align:center">${n + 1}</td><td>${s.nama}</td><td style="text-align:center">${s.kelas || '-'}</td><td style="text-align:center">${s.tepat} / ${s.trx}</td><td class="num">${formatRupiah(s.total)}</td><td style="text-align:center;font-weight:bold">${s.poin}</td></tr>`).join('') || '<tr><td colspan="6" style="text-align:center">Belum ada data pembayaran</td></tr>'}
+                </table>
+                ${blokTtd()}</section>`;
+        }
+
+        function renderCetakBulanList() {
+            const box = document.getElementById('cetak-bulan-list');
+            if (!box) return;
+            const bulanList = daftarBulanKeuangan();
+            if (box.dataset.filled === String(bulanList.length) && bulanList.length) return;
+            box.innerHTML = bulanList.map((b, i) => `
+                <label class="flex items-center gap-2 text-[11px] sm:text-xs">
+                    <input type="checkbox" class="cetak-bulan" value="${b}" ${i === 0 ? 'checked' : ''}> ${b}
+                </label>`).join('') || '<p class="text-xs text-gray-500">Data bulan belum tersedia.</p>';
+            box.dataset.filled = String(bulanList.length);
+        }
+
+        function pilihSemuaBulanCetak(v) {
+            document.querySelectorAll('.cetak-bulan').forEach(c => c.checked = v);
+        }
+
+        function cetakLaporanGabungan() {
+            const jenis = Array.from(document.querySelectorAll('.cetak-jenis:checked')).map(c => c.value);
+            const bulan = Array.from(document.querySelectorAll('.cetak-bulan:checked')).map(c => c.value)
+                .sort((a, b) => bulanSortKey(a) - bulanSortKey(b));
+            if (!jenis.length) { showToast("Pilih minimal satu jenis laporan."); return; }
+            if ((jenis.includes('keuangan') || jenis.includes('teladan')) && !bulan.length) { showToast("Pilih minimal satu bulan."); return; }
+
+            let isi = "";
+            if (jenis.includes('pendapatan')) isi += htmlPendapatanTetap();
+            if (jenis.includes('keuangan')) bulan.forEach(b => isi += htmlLaporanKeuangan(b));
+            if (jenis.includes('tunggakan')) isi += htmlTunggakan();
+            if (jenis.includes('teladan')) bulan.forEach(b => isi += htmlTeladan(b));
+            cetakHTML('Laporan Yayasan Huda Wan Nurul Qurani', isi);
         }
 
         function copyLaporanKeuangan() {
