@@ -224,7 +224,7 @@
             </div>
 
             <!-- MENU ADMIN -->
-            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
                 <button onclick="openAdminMenu('pendapatan')" id="menu-pendapatan" class="admin-menu-btn bg-white rounded-xl shadow-md border-t-4 border-ygreen-600 p-4 text-left hover:shadow-lg transition">
                     <i class="fas fa-th-large text-ygreen-600 text-xl mb-1"></i>
                     <h3 class="font-bold text-sm sm:text-base text-gray-800">Rincian Pendapatan</h3>
@@ -240,6 +240,11 @@
                     <h3 class="font-bold text-sm sm:text-base text-gray-800">Cek BKU Pengeluaran</h3>
                     <p class="text-[10px] sm:text-xs text-gray-500">Detail pengeluaran per bulan</p>
                 </button>
+                <button onclick="openAdminMenu('hutang')" id="menu-hutang" class="admin-menu-btn bg-white rounded-xl shadow-md border-t-4 border-orange-500 p-4 text-left hover:shadow-lg transition">
+                    <i class="fas fa-hand-holding-dollar text-orange-500 text-xl mb-1"></i>
+                    <h3 class="font-bold text-sm sm:text-base text-gray-800">Buku Hutang</h3>
+                    <p class="text-[10px] sm:text-xs text-gray-500">Hutang yayasan &amp; tunggakan santri</p>
+                </button>
                 <button onclick="openAdminMenu('cetak')" id="menu-cetak" class="admin-menu-btn bg-white rounded-xl shadow-md border-t-4 border-blue-500 p-4 text-left hover:shadow-lg transition">
                     <i class="fas fa-print text-blue-500 text-xl mb-1"></i>
                     <h3 class="font-bold text-sm sm:text-base text-gray-800">Cetak Laporan</h3>
@@ -248,12 +253,30 @@
 
             </div>
 
+            <!-- BUKU HUTANG -->
+            <div id="panel-hutang" class="admin-panel bg-white rounded-xl shadow-md border-t-4 border-orange-500 p-4 sm:p-5 bg-opacity-95 hidden">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-3 mb-4">
+                    <div>
+                        <h2 class="text-base sm:text-lg font-bold text-gray-800"><i class="fas fa-hand-holding-dollar text-orange-500 mr-2"></i> Buku Hutang Yayasan</h2>
+                        <p class="text-[10px] sm:text-xs text-gray-500">Periode mengikuti bulan pada kolom Ket. Baris tanpa bulan tetap ditampilkan pada Semua Bulan.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label for="filter-bulan-hutang" class="text-xs sm:text-sm font-semibold text-gray-700">Bulan:</label>
+                        <select id="filter-bulan-hutang" class="border border-gray-300 rounded p-1.5 text-xs sm:text-sm font-semibold text-orange-700 outline-none focus:ring-1 focus:ring-orange-400"></select>
+                    </div>
+                </div>
+                <div id="hutang-kesimpulan"></div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border border-gray-300 text-[10px] sm:text-sm" id="tabel-hutang"></table>
+                </div>
+            </div>
+
             <!-- Grid Card Per Jalur Masuk -->
             <div id="panel-pendapatan" class="admin-panel bg-white rounded-xl shadow-md border-t-4 border-ygreen-600 p-4 sm:p-5 bg-opacity-95 hidden">
                 <h2 class="text-base sm:text-lg font-bold text-gray-800 mb-4 border-b pb-2"><i class="fas fa-th-large text-ygreen-600 mr-2"></i> Rincian Pendapatan Berdasarkan Jalur Masuk</h2>
                 
-                <div id="admin-cards-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <!-- Cards Populated via JS -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border border-gray-300 text-[10px] sm:text-sm" id="tabel-pendapatan"></table>
                 </div>
             </div>
 
@@ -292,9 +315,12 @@
                         <h2 class="text-base sm:text-lg font-bold text-gray-800"><i class="fas fa-book text-red-500 mr-2"></i> Buku Kas Umum &mdash; Pengeluaran</h2>
                         <p class="text-[10px] sm:text-xs text-gray-500">Rincian seluruh transaksi pengeluaran per bulan</p>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
                         <label for="filter-bulan-bku" class="text-xs sm:text-sm font-semibold text-gray-700">Bulan:</label>
                         <select id="filter-bulan-bku" class="border border-gray-300 rounded p-1.5 text-xs sm:text-sm font-semibold text-red-700 outline-none focus:ring-1 focus:ring-red-400"></select>
+                        <button onclick="cetakBKUTerpilih()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded font-bold text-xs sm:text-sm shadow-sm">
+                            <i class="fas fa-file-pdf mr-1"></i> Cetak PDF
+                        </button>
                     </div>
                 </div>
                 <div id="bku-status" class="text-xs text-gray-500 mb-2 hidden">Memuat data BKU...</div>
@@ -314,8 +340,10 @@
                         <h3 class="font-bold text-xs sm:text-sm text-gray-700 mb-2">Jenis Laporan</h3>
                         <label class="flex items-center gap-2 text-xs sm:text-sm mb-1"><input type="checkbox" class="cetak-jenis" value="pendapatan" checked> Laporan Pendapatan Tetap Bulanan</label>
                         <label class="flex items-center gap-2 text-xs sm:text-sm mb-1"><input type="checkbox" class="cetak-jenis" value="keuangan" checked> Laporan Keuangan per Bulan</label>
+                        <label class="flex items-center gap-2 text-xs sm:text-sm mb-1"><input type="checkbox" class="cetak-jenis" value="bku"> Cetak BKU Pengeluaran</label>
+                        <label class="flex items-center gap-2 text-xs sm:text-sm mb-1"><input type="checkbox" class="cetak-jenis" value="hutang"> Cetak Buku Hutang</label>
                         <label class="flex items-center gap-2 text-xs sm:text-sm mb-1"><input type="checkbox" class="cetak-jenis" value="tunggakan" checked> Rekap Santri Belum Bayar (Tunggakan)</label>
-                        <label class="flex items-center gap-2 text-xs sm:text-sm mb-1"><input type="checkbox" class="cetak-jenis" value="teladan" checked> Rekap Santri Teladan Bayar SPP</label>
+                        
                     </div>
                     <div>
                         <div class="flex items-center justify-between mb-2">
@@ -419,7 +447,11 @@
         const URL_TUNGGAKAN = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRR3UGAaAu88VLk17PoUu_6h3bUmT3O4usNKDqxHGSGly8tCQYjM6gQCe1GXFD6jc3lOTvvhOH0ilto/pub?gid=917422507&single=true&output=csv";
         const URL_PEMBAYARAN = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRR3UGAaAu88VLk17PoUu_6h3bUmT3O4usNKDqxHGSGly8tCQYjM6gQCe1GXFD6jc3lOTvvhOH0ilto/pub?gid=280283648&single=true&output=csv";
         const URL_BKU = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRR3UGAaAu88VLk17PoUu_6h3bUmT3O4usNKDqxHGSGly8tCQYjM6gQCe1GXFD6jc3lOTvvhOH0ilto/pub?gid=1680699937&single=true&output=csv";
+        const URL_LAIN = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRR3UGAaAu88VLk17PoUu_6h3bUmT3O4usNKDqxHGSGly8tCQYjM6gQCe1GXFD6jc3lOTvvhOH0ilto/pub?gid=1770315582&single=true&output=csv";
+        const URL_HUTANG = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRR3UGAaAu88VLk17PoUu_6h3bUmT3O4usNKDqxHGSGly8tCQYjM6gQCe1GXFD6jc3lOTvvhOH0ilto/pub?gid=1365040145&single=true&output=csv";
         let dataBKU = [];
+        let dataLain = [];
+        let dataHutang = [];
         let bkuLoaded = false;
 
 
@@ -505,7 +537,7 @@
                 document.getElementById('no-data-cari').classList.remove('hidden');
 
                 // BKU dimuat di latar belakang agar loading awal tetap cepat
-                loadBKU();
+                loadBKU(); loadLain(); loadHutang();
             }).catch(e => {
                 clearInterval(loaderTimer);
                 document.getElementById('loader-status').innerText = "Koneksi gagal, silakan refresh halaman.";
@@ -605,7 +637,7 @@
         }
 
         function renderAdminDashboard() {
-            const container = document.getElementById('admin-cards-container');
+            const container = document.getElementById('tabel-pendapatan');
             container.innerHTML = '';
             
             let dashboardData = {};
@@ -650,29 +682,37 @@
 
             const sortedKeys = Object.keys(dashboardData).sort((a,b) => orderWeight(a) - orderWeight(b));
 
-            sortedKeys.forEach(jalur => {
-                const data = dashboardData[jalur];
-                container.innerHTML += `
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 hover:shadow-md transition">
-                        <h3 class="font-bold text-ygreen-800 text-sm sm:text-base border-b border-gray-100 pb-2 mb-2 uppercase tracking-wide">${jalur}</h3>
-                        <div class="flex justify-between items-center mb-1 text-xs sm:text-sm">
-                            <span class="text-gray-500">Jumlah Siswa:</span>
-                            <span class="font-semibold text-gray-800 bg-gray-100 px-2 rounded-full">${data.count} Santri</span>
-                        </div>
-                        <div class="flex justify-between items-center bg-green-50 p-2 sm:p-3 rounded-lg mt-3">
-                            <span class="text-[10px] sm:text-xs font-bold text-green-700 uppercase">Total Bayar:</span>
-                            <span class="font-extrabold text-green-800 text-sm sm:text-base">${formatRupiah(data.sum)}</span>
-                        </div>
-                    </div>
-                `;
-            });
+            container.innerHTML = `
+                <thead class="bg-ygreen-700 text-white uppercase">
+                    <tr>
+                        <th class="border border-gray-300 px-2 py-1 text-center w-8">No</th>
+                        <th class="border border-gray-300 px-2 py-1">Jalur Masuk</th>
+                        <th class="border border-gray-300 px-2 py-1 text-center">Jumlah Santri</th>
+                        <th class="border border-gray-300 px-2 py-1 text-right">Pendapatan / Bulan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${sortedKeys.map((jalur, i) => `
+                        <tr class="${i % 2 ? 'bg-gray-50' : 'bg-white'}">
+                            <td class="border border-gray-300 px-2 py-1 text-center text-gray-500">${i + 1}</td>
+                            <td class="border border-gray-300 px-2 py-1 font-semibold text-ygreen-800 uppercase">${jalur}</td>
+                            <td class="border border-gray-300 px-2 py-1 text-center">${dashboardData[jalur].count}</td>
+                            <td class="border border-gray-300 px-2 py-1 text-right font-bold text-green-800 whitespace-nowrap">${formatRupiah(dashboardData[jalur].sum)}</td>
+                        </tr>`).join('') || '<tr><td colspan="4" class="border border-gray-300 px-2 py-3 text-center text-gray-500">Data belum tersedia.</td></tr>'}
+                    <tr class="bg-gray-100">
+                        <td class="border border-gray-300"></td>
+                        <td class="border border-gray-300 px-2 py-1 font-extrabold">TOTAL</td>
+                        <td class="border border-gray-300 px-2 py-1 text-center font-extrabold">${totalSiswaSeluruh}</td>
+                        <td class="border border-gray-300 px-2 py-1 text-right font-extrabold text-green-800 whitespace-nowrap">${formatRupiah(totalKeseluruhan)}</td>
+                    </tr>
+                </tbody>`;
             renderLaporanKeuangan();
             renderBKUPengeluaran();
         }
 
         /* Menu Admin: buka panel sesuai menu yang diklik */
         function openAdminMenu(nama) {
-            const panels = { pendapatan: 'panel-pendapatan', keuangan: 'panel-keuangan', bku: 'panel-bku', cetak: 'panel-cetak' };
+            const panels = { pendapatan: 'panel-pendapatan', keuangan: 'panel-keuangan', bku: 'panel-bku', hutang: 'panel-hutang', cetak: 'panel-cetak' };
             const aktif = document.getElementById(panels[nama]);
             const sudahTampil = aktif && !aktif.classList.contains('hidden');
             Object.values(panels).forEach(id => document.getElementById(id).classList.add('hidden'));
@@ -682,6 +722,7 @@
                 document.getElementById('menu-' + nama).classList.add('ring-2', 'ring-ygreen-500');
                 if (nama === 'keuangan') renderLaporanKeuangan();
                 if (nama === 'bku') renderBKUPengeluaran();
+                if (nama === 'hutang') renderBukuHutang();
                 if (nama === 'cetak') renderCetakBulanList();
 
                 aktif.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -694,22 +735,22 @@
             const tabel = document.getElementById('tabel-bku');
             if (!sel || !tabel) return;
 
-            const bulanList = Array.from(new Set(dataBKU.filter(r => r.pengeluaran > 0).map(r => r.bulan)))
-                .sort((a, b) => bulanSortKey(b) - bulanSortKey(a));
+            const bulanList = [SEMUA_BULAN].concat(Array.from(new Set(dataBKU.filter(r => r.pengeluaran > 0).map(r => r.bulan)))
+                .sort((a, b) => bulanSortKey(b) - bulanSortKey(a)));
             if (sel.dataset.filled !== String(bulanList.length)) {
                 const prev = sel.value;
                 sel.innerHTML = "";
                 bulanList.forEach(b => sel.appendChild(new Option(b, b)));
                 sel.dataset.filled = String(bulanList.length);
-                if (prev && bulanList.includes(prev)) sel.value = prev;
+                sel.value = (prev && bulanList.includes(prev)) ? prev : (bulanList[1] || bulanList[0]);
                 sel.onchange = renderBKUPengeluaran;
             }
             const statusEl = document.getElementById('bku-status');
             if (statusEl) statusEl.classList.toggle('hidden', bkuLoaded);
             const bulan = sel.value || bulanList[0];
-            if (!bulan) { tabel.innerHTML = '<tr><td class="p-3 text-gray-500">Data pengeluaran belum tersedia.</td></tr>'; return; }
+            if (!bulan || bulanList.length < 2) { tabel.innerHTML = '<tr><td class="p-3 text-gray-500">Data pengeluaran belum tersedia.</td></tr>'; return; }
 
-            const rows = dataBKU.filter(r => r.bulan === bulan && r.pengeluaran > 0);
+            const rows = dataBKU.filter(r => (bulan === SEMUA_BULAN || r.bulan === bulan) && r.pengeluaran > 0);
             const total = rows.reduce((a, r) => a + r.pengeluaran, 0);
             tabel.innerHTML = `
                 <thead class="bg-red-600 text-white">
@@ -783,14 +824,181 @@
             }).catch(() => { bkuLoaded = true; renderLaporanKeuangan(); renderBKUPengeluaran(); });
         }
 
+        /* Ambil bulan dari teks tanggal, mis. "Kamis, 30 Juli 2026" -> "JULI 2026" */
+        function bulanDariTanggal(t) {
+            const s = String(t || "").toUpperCase();
+            const bln = NAMA_BULAN.find(b => s.includes(b));
+            const th = (s.match(/(20\d{2})/) || [])[1];
+            return (bln && th) ? (bln + " " + th) : "";
+        }
+
+        /* Cari indeks baris header pada CSV, berdasarkan kolom wajib */
+        function cariHeader(rows, wajib) {
+            for (let i = 0; i < Math.min(rows.length, 15); i++) {
+                const h = (rows[i] || []).map(c => String(c || "").trim().toLowerCase());
+                if (wajib.every(w => h.indexOf(w) >= 0)) return { i: i, h: h };
+            }
+            return null;
+        }
+
+        /* Pemasukan Lain-Lain */
+        function loadLain() {
+            fetch(URL_LAIN).then(r => r.text()).then(csv => {
+                const rows = Papa.parse(csv, { header: false, skipEmptyLines: false }).data;
+                const found = cariHeader(rows, ["tanggal", "uraian", "jumlah"]);
+                if (!found) return;
+                const c = (n) => found.h.indexOf(n);
+                const iT = c("tanggal"), iU = c("uraian"), iJ = c("jumlah"), iK = c("ket");
+                dataLain = [];
+                for (let i = found.i + 1; i < rows.length; i++) {
+                    const r = rows[i]; if (!r) continue;
+                    const g = (x) => (x >= 0 && r[x] !== undefined ? String(r[x]).trim() : "");
+                    const jumlah = parseNumeric(g(iJ));
+                    if (jumlah <= 0) continue;
+                    const bulan = normBulan(g(iK)) && NAMA_BULAN.some(b => normBulan(g(iK)).startsWith(b)) ? normBulan(g(iK)) : bulanDariTanggal(g(iT));
+                    if (!bulan) continue;
+                    dataLain.push({ tanggal: g(iT), uraian: g(iU), jumlah: jumlah, bulan: bulan });
+                }
+                renderLaporanKeuangan();
+            }).catch(() => {});
+        }
+
+        /* Buku Hutang: bulan diambil HANYA dari kolom Ket, bukan dari tanggal */
+        function loadHutang() {
+            fetch(URL_HUTANG).then(r => r.text()).then(csv => {
+                const rows = Papa.parse(csv, { header: false, skipEmptyLines: false }).data;
+                const found = cariHeader(rows, ["tanggal", "uraian", "hutang"]);
+                if (!found) return;
+                const c = (n) => found.h.indexOf(n);
+                const iN = c("no"), iT = c("tanggal"), iU = c("uraian"), iH = c("hutang"),
+                    iB = c("bayar"), iJ = c("jumlah"), iS = found.h.indexOf("sumber dana"), iK = c("ket");
+                dataHutang = [];
+                for (let i = found.i + 1; i < rows.length; i++) {
+                    const r = rows[i]; if (!r) continue;
+                    const g = (x) => (x >= 0 && r[x] !== undefined ? String(r[x]).trim() : "");
+                    const jumlah = parseNumeric(g(iH));
+                    const bayar = parseNumeric(g(iB));
+                    const sisa = parseNumeric(g(iJ));
+                    /* Abaikan baris total kumulatif yang tidak memiliki uraian. */
+                    if (!g(iU) || (jumlah <= 0 && bayar <= 0)) continue;
+                    const ket = normBulan(g(iK));
+                    const bulan = NAMA_BULAN.some(b => ket.startsWith(b)) ? ket : "";
+                    dataHutang.push({
+                        no: g(iN), tanggal: g(iT), uraian: g(iU), jumlah: jumlah,
+                        bayar: bayar, sisa: sisa, sumber: g(iS), ket: g(iK), bulan: bulan
+                    });
+                }
+                renderLaporanKeuangan();
+                renderBukuHutang();
+            }).catch(() => {});
+        }
+
+        /* Halaman Buku Hutang + perbandingan dengan tunggakan santri */
+        function renderBukuHutang() {
+            const sel = document.getElementById('filter-bulan-hutang');
+            const tabel = document.getElementById('tabel-hutang');
+            if (!sel || !tabel) return;
+
+            const bulanList = [SEMUA_BULAN].concat(
+                Array.from(new Set(dataHutang.map(r => r.bulan).filter(Boolean)))
+                    .sort((a, b) => bulanSortKey(b) - bulanSortKey(a))
+            );
+            if (sel.dataset.filled !== String(bulanList.length)) {
+                const prev = sel.value;
+                sel.innerHTML = "";
+                bulanList.forEach(b => sel.appendChild(new Option(b, b)));
+                if (prev && bulanList.includes(prev)) sel.value = prev;
+                sel.dataset.filled = String(bulanList.length);
+                sel.onchange = renderBukuHutang;
+            }
+            const bulan = sel.value || SEMUA_BULAN;
+            const list = bulan === SEMUA_BULAN ? dataHutang : dataHutang.filter(r => r.bulan === bulan);
+
+            const totalHutang = list.reduce((a, r) => a + r.jumlah, 0);
+            const totalBayar = list.reduce((a, r) => a + r.bayar, 0);
+            const sisaHutang = totalHutang - totalBayar;
+
+            let totalTunggakan = 0;
+            dataTunggakan.forEach(row => {
+                const nama = getCleanName(row);
+                const tg = parseNumeric(getColValue(row, ["TOTAL TUNGGAKAN", "Tunggakan"]));
+                if (nama && tg > 0) totalTunggakan += tg;
+            });
+            const selisih = totalTunggakan - sisaHutang;
+
+            tabel.innerHTML = `
+                <thead class="bg-red-700 text-white text-[10px] sm:text-xs uppercase">
+                    <tr>
+                        <th class="px-2 py-2 border border-red-800 text-center">No</th>
+                        <th class="px-2 py-2 border border-red-800">Tanggal</th>
+                        <th class="px-2 py-2 border border-red-800">Uraian</th>
+                        <th class="px-2 py-2 border border-red-800 text-right">Hutang</th>
+                        <th class="px-2 py-2 border border-red-800 text-right">Bayar</th>
+                        <th class="px-2 py-2 border border-red-800 text-right">Jumlah</th>
+                        <th class="px-2 py-2 border border-red-800">Sumber Dana</th>
+                        <th class="px-2 py-2 border border-red-800">Ket</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${list.map((r, n) => `<tr class="odd:bg-white even:bg-gray-50">
+                        <td class="px-2 py-1 border border-gray-300 text-center">${n + 1}</td>
+                        <td class="px-2 py-1 border border-gray-300">${r.tanggal || '-'}</td>
+                        <td class="px-2 py-1 border border-gray-300">${r.uraian || '-'}</td>
+                        <td class="px-2 py-1 border border-gray-300 text-right">${r.jumlah ? formatRupiah(r.jumlah) : '-'}</td>
+                        <td class="px-2 py-1 border border-gray-300 text-right">${r.bayar ? formatRupiah(r.bayar) : '-'}</td>
+                        <td class="px-2 py-1 border border-gray-300 text-right">${r.sisa ? formatRupiah(r.sisa) : '-'}</td>
+                        <td class="px-2 py-1 border border-gray-300">${r.sumber || '-'}</td>
+                        <td class="px-2 py-1 border border-gray-300">${r.ket || '-'}</td>
+                    </tr>`).join('') || `<tr><td colspan="8" class="px-2 py-3 text-center text-gray-500 border border-gray-300">Belum ada data hutang</td></tr>`}
+                    <tr class="bg-red-100 font-bold">
+                        <td colspan="3" class="px-2 py-2 border border-gray-300 text-right">TOTAL</td>
+                        <td class="px-2 py-2 border border-gray-300 text-right">${formatRupiah(totalHutang)}</td>
+                        <td class="px-2 py-2 border border-gray-300 text-right">${formatRupiah(totalBayar)}</td>
+                        <td colspan="3" class="px-2 py-2 border border-gray-300 text-right">Sisa Hutang: ${formatRupiah(sisaHutang)}</td>
+                    </tr>
+                </tbody>`;
+
+            const info = document.getElementById('hutang-kesimpulan');
+            if (info) {
+                const surplus = selisih >= 0;
+                info.innerHTML = `
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                            <p class="text-[10px] sm:text-xs font-bold text-red-700 uppercase">Sisa Hutang Yayasan</p>
+                            <p class="text-sm sm:text-xl font-extrabold text-red-800 mt-1 break-all">${formatRupiah(sisaHutang)}</p>
+                        </div>
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                            <p class="text-[10px] sm:text-xs font-bold text-yellow-700 uppercase">Total Tunggakan Santri</p>
+                            <p class="text-sm sm:text-xl font-extrabold text-yellow-800 mt-1 break-all">${formatRupiah(totalTunggakan)}</p>
+                        </div>
+                        <div class="${surplus ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'} border rounded-lg p-3">
+                            <p class="text-[10px] sm:text-xs font-bold ${surplus ? 'text-green-700' : 'text-red-700'} uppercase">${surplus ? 'Surplus' : 'Minus'}</p>
+                            <p class="text-sm sm:text-xl font-extrabold ${surplus ? 'text-green-800' : 'text-red-800'} mt-1 break-all">${formatRupiah(Math.abs(selisih))}</p>
+                        </div>
+                    </div>
+                    <p class="text-[11px] sm:text-sm text-gray-700 leading-relaxed">
+                        <b>Kesimpulan:</b> Sisa hutang yayasan ${formatRupiah(sisaHutang)} dibandingkan potensi penerimaan dari tunggakan santri ${formatRupiah(totalTunggakan)}
+                        menghasilkan posisi <b class="${surplus ? 'text-green-700' : 'text-red-700'}">${surplus ? 'SURPLUS' : 'MINUS'} ${formatRupiah(Math.abs(selisih))}</b>.
+                        ${surplus
+                            ? 'Artinya bila seluruh tunggakan santri tertagih, hutang yayasan dapat tertutup seluruhnya dan masih tersisa dana.'
+                            : 'Artinya meskipun seluruh tunggakan santri tertagih, masih ada kekurangan dana untuk menutup hutang yayasan.'}
+                    </p>`;
+            }
+        }
+
+        const SEMUA_BULAN = "SEMUA BULAN (GABUNGAN)";
+
         function daftarBulanKeuangan() {
             const set = new Set();
             dataPembayaran.forEach(r => { const b = normBulan(getColValue(r, ["BULAN"])); if (b) set.add(b); });
             dataBKU.forEach(r => set.add(r.bulan));
-            return Array.from(set).sort((a, b) => bulanSortKey(b) - bulanSortKey(a));
+            dataLain.forEach(r => set.add(r.bulan));
+            dataHutang.forEach(r => set.add(r.bulan));
+            return Array.from(set).filter(Boolean).sort((a, b) => bulanSortKey(b) - bulanSortKey(a));
         }
 
-        function hitungLaporan(bulan) {
+        /* Hitung komponen satu bulan. carry = sisa saldo bulan sebelumnya (null bila bulan pertama) */
+        function komponenBulan(bulan, carry) {
             let tk = 0, sd = 0, smp = 0;
             dataPembayaran.forEach(r => {
                 if (normBulan(getColValue(r, ["BULAN"])) !== bulan) return;
@@ -799,14 +1007,15 @@
                 if (j.startsWith("TK") || j.includes("PAUD") || j.includes("KB")) tk += jml;
                 else if (j.startsWith("SMP")) smp += jml;
                 else if (j.startsWith("SD")) sd += jml;
-                else sd += 0;
             });
 
             const bkuBulan = dataBKU.filter(r => r.bulan === bulan);
-            const sumPemasukan = (test) => bkuBulan.filter(r => r.pemasukan > 0 && test(r.rincian.toUpperCase())).reduce((a, r) => a + r.pemasukan, 0);
-            const sisaSaldoLalu = sumPemasukan(t => t.includes("SISA SALDO"));
-            const lainLain = sumPemasukan(t => t.includes("LAIN"));
-            const hutang = sumPemasukan(t => t.includes("HUTANG") || t.includes("PINJAMAN"));
+            const sumPemasukan = (test) => bkuBulan.filter(r => r.pemasukan > 0 && test(String(r.rincian || "").toUpperCase())).reduce((a, r) => a + r.pemasukan, 0);
+            const saldoAwalBKU = sumPemasukan(t => t.includes("SISA SALDO") || t.includes("SALDO AWAL"));
+            const sisaSaldoLalu = (carry === null || carry === undefined) ? saldoAwalBKU : carry;
+
+            const lainLain = dataLain.filter(r => r.bulan === bulan).reduce((a, r) => a + r.jumlah, 0);
+            const hutang = dataHutang.filter(r => r.bulan === bulan).reduce((a, r) => a + r.jumlah, 0);
 
             const pemasukan = [
                 { label: "SISA SALDO BULAN LALU", nilai: sisaSaldoLalu },
@@ -820,14 +1029,45 @@
             const grup = {};
             bkuBulan.forEach(r => {
                 if (r.pengeluaran <= 0) return;
-                const k = r.keterangan.toUpperCase();
+                const k = String(r.keterangan || "LAIN-LAIN").toUpperCase();
                 grup[k] = (grup[k] || 0) + r.pengeluaran;
             });
             const pengeluaran = Object.keys(grup).sort().map(k => ({ label: k, nilai: grup[k] }));
 
             const totalMasuk = pemasukan.reduce((a, i) => a + i.nilai, 0);
             const totalKeluar = pengeluaran.reduce((a, i) => a + i.nilai, 0);
-            return { pemasukan, pengeluaran, totalMasuk, totalKeluar, sisa: totalMasuk - totalKeluar };
+            return { bulan, pemasukan, pengeluaran, totalMasuk, totalKeluar, sisa: totalMasuk - totalKeluar };
+        }
+
+        /* Semua bulan berurutan, sisa saldo bulan berjalan dibawa ke bulan berikutnya */
+        function laporanBerurutan() {
+            const asc = daftarBulanKeuangan().slice().sort((a, b) => bulanSortKey(a) - bulanSortKey(b));
+            const hasil = {}; let carry = null;
+            asc.forEach(b => { const d = komponenBulan(b, carry); hasil[b] = d; carry = d.sisa; });
+            return { asc, hasil };
+        }
+
+        function hitungLaporan(bulan) {
+            const { asc, hasil } = laporanBerurutan();
+            if (bulan !== SEMUA_BULAN) {
+                const d = hasil[bulan] || komponenBulan(bulan, null);
+                return Object.assign({}, d, { perBulan: [d] });
+            }
+            if (!asc.length) return { pemasukan: [], pengeluaran: [], totalMasuk: 0, totalKeluar: 0, sisa: 0, perBulan: [] };
+
+            const labelMasuk = ["SISA SALDO BULAN LALU", "PEMASUKAN INFAQ TKIT-Qu", "PEMASUKAN INFAQ SDIT-Qu", "PEMASUKAN INFAQ SMPIT-Qu", "PEMASUKAN LAIN-LAIN", "PEMASUKAN PINJAMAN / HUTANG"];
+            const pemasukan = labelMasuk.map(lb => ({
+                label: lb === "SISA SALDO BULAN LALU" ? "SALDO AWAL PERIODE" : lb,
+                nilai: lb === "SISA SALDO BULAN LALU"
+                    ? (hasil[asc[0]].pemasukan[0].nilai)
+                    : asc.reduce((a, b) => a + (hasil[b].pemasukan.find(p => p.label === lb) || { nilai: 0 }).nilai, 0)
+            }));
+            const grup = {};
+            asc.forEach(b => hasil[b].pengeluaran.forEach(p => { grup[p.label] = (grup[p.label] || 0) + p.nilai; }));
+            const pengeluaran = Object.keys(grup).sort().map(k => ({ label: k, nilai: grup[k] }));
+            const totalMasuk = pemasukan.reduce((a, i) => a + i.nilai, 0);
+            const totalKeluar = pengeluaran.reduce((a, i) => a + i.nilai, 0);
+            return { pemasukan, pengeluaran, totalMasuk, totalKeluar, sisa: totalMasuk - totalKeluar, perBulan: asc.map(b => hasil[b]) };
         }
 
         function renderLaporanKeuangan() {
@@ -835,18 +1075,18 @@
             const tabel = document.getElementById('tabel-keuangan');
             if (!sel || !tabel) return;
 
-            const bulanList = daftarBulanKeuangan();
+            const bulanList = [SEMUA_BULAN].concat(daftarBulanKeuangan());
             if (sel.options.length !== bulanList.length || sel.dataset.filled !== String(bulanList.length)) {
                 const prev = sel.value;
                 sel.innerHTML = "";
                 bulanList.forEach(b => sel.appendChild(new Option(b, b)));
                 sel.dataset.filled = String(bulanList.length);
-                if (prev && bulanList.includes(prev)) sel.value = prev;
+                sel.value = (prev && bulanList.includes(prev)) ? prev : (bulanList[1] || bulanList[0]);
                 sel.onchange = renderLaporanKeuangan;
             }
             const bulan = sel.value || bulanList[0];
             document.getElementById('keuangan-status').classList.toggle('hidden', bkuLoaded);
-            if (!bulan) { tabel.innerHTML = '<tr><td class="p-3 text-gray-500">Data belum tersedia.</td></tr>'; return; }
+            if (!bulan || bulanList.length < 2) { tabel.innerHTML = '<tr><td class="p-3 text-gray-500">Data belum tersedia.</td></tr>'; return; }
 
             const d = hitungLaporan(bulan);
             const rowsHtml = (items, warna) => items.map((i, n) => `
@@ -902,12 +1142,27 @@
                         <td class="border border-gray-300"></td>
                         <td class="border border-gray-300 px-2 py-1 text-right font-extrabold text-ygreen-800 text-xs sm:text-lg whitespace-nowrap">${formatRupiah(d.sisa)}</td>
                     </tr>
+                    ${(d.perBulan && d.perBulan.length > 1) ? `
+                    <tr><td colspan="4" class="bg-green-500 text-white px-2 py-1 font-bold">D. SISA SALDO PER BULAN</td></tr>
+                    <tr class="bg-gray-100">
+                        <td class="border border-gray-300 px-2 py-1 text-center font-bold">No</td>
+                        <td class="border border-gray-300 px-2 py-1 font-bold">Bulan</td>
+                        <td class="border border-gray-300 px-2 py-1 text-center font-bold">Masuk / Keluar</td>
+                        <td class="border border-gray-300 px-2 py-1 text-right font-bold">Sisa Saldo</td>
+                    </tr>
+                    ${d.perBulan.map((p, n) => `
+                    <tr>
+                        <td class="border border-gray-300 px-2 py-1 text-center text-gray-500">${n + 1}</td>
+                        <td class="border border-gray-300 px-2 py-1 font-semibold">${p.bulan}</td>
+                        <td class="border border-gray-300 px-2 py-1 text-center text-[9px] sm:text-xs whitespace-nowrap"><span class="text-green-700">${formatRupiah(p.totalMasuk)}</span> / <span class="text-red-700">${formatRupiah(p.totalKeluar)}</span></td>
+                        <td class="border border-gray-300 px-2 py-1 text-right font-bold text-ygreen-800 whitespace-nowrap">${formatRupiah(p.sisa)}</td>
+                    </tr>`).join('')}` : ''}
                 </tbody>`;
         }
 
         /* ===== DETAIL PENGELUARAN PER KATEGORI ===== */
         function showDetailPengeluaran(bulan, kategori) {
-            const rows = dataBKU.filter(r => r.bulan === bulan && r.pengeluaran > 0 && r.keterangan.toUpperCase() === kategori.toUpperCase());
+            const rows = dataBKU.filter(r => (bulan === SEMUA_BULAN || r.bulan === bulan) && r.pengeluaran > 0 && String(r.keterangan || "").toUpperCase() === kategori.toUpperCase());
             const total = rows.reduce((a, r) => a + r.pengeluaran, 0);
             document.getElementById('modal-pengeluaran-judul').innerText = kategori + ' — ' + bulan;
             document.getElementById('tabel-detail-pengeluaran').innerHTML = `
@@ -969,7 +1224,10 @@
                 .kop-garis { border: none; border-top: 3px double #14532d; margin: 8px 0 14px; }
                 h3.judul { text-align: center; margin: 0 0 4px; font-size: 15px; text-decoration: underline; }
                 p.sub { text-align: center; margin: 0 0 12px; font-size: 11px; }
-                table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+                 table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+                 thead { display: table-header-group; }
+                 tfoot { display: table-footer-group; }
+                 tr { break-inside: avoid; page-break-inside: avoid; }
                 th, td { border: 1px solid #999; padding: 4px 6px; }
                 th { background: #16a34a; color: #fff; font-size: 11px; }
                 td.num { text-align: right; white-space: nowrap; }
@@ -980,7 +1238,11 @@
                 .spasi-ttd { height: 60px; }
                 section { page-break-after: always; }
                 section:last-child { page-break-after: auto; }
-                @media print { body { margin: 10mm; } }
+                 @media print {
+                     body { margin: 10mm; }
+                     thead { display: table-header-group; }
+                     tfoot { display: table-footer-group; }
+                 }
             </style></head><body>${isi}
             <script>window.onload = function(){ setTimeout(function(){ window.print(); }, 500); };<\/script>
             </body></html>`);
@@ -995,21 +1257,44 @@
             </tr></table>`;
         }
 
+        function namaBulanKapital(bulan) {
+            const teks = String(bulan || '').trim().toLowerCase();
+            return teks ? teks.charAt(0).toUpperCase() + teks.slice(1) : '';
+        }
+
+        function labelPeriodeCetak(bulan, sumberBulan) {
+            if (bulan !== SEMUA_BULAN) return 'Laporan Bulan ' + namaBulanKapital(bulan);
+            const daftar = Array.from(new Set((sumberBulan || daftarBulanKeuangan()).filter(Boolean)))
+                .sort((a, b) => bulanSortKey(a) - bulanSortKey(b));
+            if (!daftar.length) return 'Laporan Periode Belum Tersedia';
+            if (daftar.length === 1) return 'Laporan Bulan ' + namaBulanKapital(daftar[0]);
+            const awal = daftar[0].split(/\s+/);
+            const akhir = daftar[daftar.length - 1].split(/\s+/);
+            const tahunAwal = awal[awal.length - 1];
+            const tahunAkhir = akhir[akhir.length - 1];
+            const bulanAwal = namaBulanKapital(awal.slice(0, -1).join(' '));
+            const bulanAkhir = namaBulanKapital(akhir.slice(0, -1).join(' '));
+            return tahunAwal === tahunAkhir
+                ? `Laporan Bulan ${bulanAwal} - ${bulanAkhir} ${tahunAkhir}`
+                : `Laporan Bulan ${bulanAwal} ${tahunAwal} - ${bulanAkhir} ${tahunAkhir}`;
+        }
+
         function htmlLaporanKeuangan(bulan) {
             const d = hitungLaporan(bulan);
             const baris = (items) => items.map((i, n) => `<tr><td style="width:30px;text-align:center">${n + 1}</td><td>${i.label}</td><td class="num">${formatRupiah(i.nilai)}</td></tr>`).join('');
             return `<section>${kopLaporan()}
                 <h3 class="judul">REKAPITULASI LAPORAN KEUANGAN</h3>
-                <p class="sub">PERIODE : ${bulan}</p>
+                 <p class="sub">${labelPeriodeCetak(bulan)}</p>
                 <table>
-                    <tr class="sec"><td colspan="3">A. PEMASUKAN</td></tr>
+                     <thead><tr><th>No</th><th>Uraian</th><th>Jumlah</th></tr></thead>
+                     <tbody><tr class="sec"><td colspan="3">A. PEMASUKAN</td></tr>
                     ${baris(d.pemasukan)}
                     <tr class="tot"><td></td><td>TOTAL PEMASUKAN</td><td class="num">${formatRupiah(d.totalMasuk)}</td></tr>
                     <tr class="sec"><td colspan="3">B. PENGELUARAN</td></tr>
                     ${d.pengeluaran.length ? baris(d.pengeluaran) : '<tr><td colspan="3" style="text-align:center">Tidak ada pengeluaran</td></tr>'}
                     <tr class="tot"><td></td><td>TOTAL PENGELUARAN</td><td class="num">${formatRupiah(d.totalKeluar)}</td></tr>
                     <tr class="sec"><td colspan="3">C. SISA SALDO</td></tr>
-                    <tr class="tot"><td></td><td>SISA SALDO</td><td class="num">${formatRupiah(d.sisa)}</td></tr>
+                     <tr class="tot"><td></td><td>SISA SALDO</td><td class="num">${formatRupiah(d.sisa)}</td></tr></tbody>
                 </table>
                 ${blokTtd()}</section>`;
         }
@@ -1037,9 +1322,9 @@
                 <h3 class="judul">LAPORAN PENDAPATAN TETAP BULANAN</h3>
                 <p class="sub">Berdasarkan jalur masuk santri</p>
                 <table>
-                    <tr><th>No</th><th>Jalur Masuk</th><th>Jumlah Santri</th><th>Pendapatan / Bulan</th></tr>
-                    ${rows}
-                    <tr class="tot"><td colspan="2">TOTAL</td><td style="text-align:center">${totalSantri}</td><td class="num">${formatRupiah(totalSemua)}</td></tr>
+                     <thead><tr><th>No</th><th>Jalur Masuk</th><th>Jumlah Santri</th><th>Pendapatan / Bulan</th></tr></thead>
+                     <tbody>${rows}</tbody>
+                     <tfoot><tr class="tot"><td colspan="2">TOTAL</td><td style="text-align:center">${totalSantri}</td><td class="num">${formatRupiah(totalSemua)}</td></tr></tfoot>
                 </table>
                 ${blokTtd()}</section>`;
         }
@@ -1054,68 +1339,88 @@
                 <h3 class="judul">REKAP SANTRI BELUM BAYAR (TUNGGAKAN)</h3>
                 <p class="sub">Jumlah santri menunggak: ${list.length} santri</p>
                 <table>
-                    <tr><th>No</th><th>Nama Santri</th><th>Kelas</th><th>Tunggakan</th></tr>
-                    ${list.map((i, n) => `<tr><td style="text-align:center">${n + 1}</td><td>${i.nama}</td><td style="text-align:center">${i.kelas || '-'}</td><td class="num">${formatRupiah(i.tg)}</td></tr>`).join('') || '<tr><td colspan="4" style="text-align:center">Tidak ada tunggakan</td></tr>'}
-                    <tr class="tot"><td colspan="3">TOTAL TUNGGAKAN</td><td class="num">${formatRupiah(total)}</td></tr>
+                     <thead><tr><th>No</th><th>Nama Santri</th><th>Kelas</th><th>Tunggakan</th></tr></thead>
+                     <tbody>${list.map((i, n) => `<tr><td style="text-align:center">${n + 1}</td><td>${i.nama}</td><td style="text-align:center">${i.kelas || '-'}</td><td class="num">${formatRupiah(i.tg)}</td></tr>`).join('') || '<tr><td colspan="4" style="text-align:center">Tidak ada tunggakan</td></tr>'}</tbody>
+                     <tfoot><tr class="tot"><td colspan="3">TOTAL TUNGGAKAN</td><td class="num">${formatRupiah(total)}</td></tr></tfoot>
                 </table>
                 ${blokTtd()}</section>`;
         }
 
-        /* Poin santri teladan:
-           bayar tgl 1-5 = 5 poin, tgl 6-10 = 3 poin, tgl 11-20 = 1 poin, > 20 = 0 poin
-           bonus 3 poin bila pembayaran berketerangan LUNAS
-           dikurangi 5 poin bila santri masih punya tunggakan */
-        function ambilTanggalHari(str) {
-            const m = String(str || "").match(/\d{1,2}/);
-            return m ? parseInt(m[0], 10) : 0;
-        }
-        function hitungTeladan(bulan) {
-            const map = {};
-            dataPembayaran.forEach(r => {
-                const b = normBulan(getColValue(r, ["BULAN"]));
-                if (bulan && b !== bulan) return;
-                const nama = getCleanName(r);
-                if (!nama) return;
-                const jml = parseNumeric(getColValue(r, ["PEMBAYARAN"]));
-                if (jml <= 0) return;
-                const hari = ambilTanggalHari(getColValue(r, ["TANGGAL", "Tanggal", "Tgl"]));
-                let poin = hari >= 1 && hari <= 5 ? 5 : hari <= 10 ? 3 : hari <= 20 ? 1 : 0;
-                const ket = (getColValue(r, ["KETERANGAN BAYAR"]) + " " + getColValue(r, ["KETERANGAN"])).toUpperCase();
-                if (ket.includes("LUNAS")) poin += 3;
-                if (!map[nama]) map[nama] = { nama, poin: 0, total: 0, tepat: 0, trx: 0, kelas: "" };
-                map[nama].poin += poin; map[nama].total += jml; map[nama].trx++;
-                if (hari >= 1 && hari <= 5) map[nama].tepat++;
-            });
-            Object.values(map).forEach(s => {
-                const rowT = dataTunggakan.find(r => getCleanName(r).toLowerCase() === s.nama.toLowerCase());
-                s.kelas = rowT ? getColValue(rowT, ["Kelas"]).trim() : "";
-                const tg = rowT ? parseNumeric(getColValue(rowT, ["TOTAL TUNGGAKAN"])) : 0;
-                if (tg > 0) s.poin -= 5;
-                s.tunggakan = tg;
-            });
-            return Object.values(map).sort((a, b) => b.poin - a.poin || b.total - a.total).slice(0, 30);
-        }
-
-        function htmlTeladan(bulan) {
-            const list = hitungTeladan(bulan);
+        function htmlBKU(bulan) {
+            const list = dataBKU.filter(r => (bulan === SEMUA_BULAN || r.bulan === bulan) && r.pengeluaran > 0);
+            const total = list.reduce((a, r) => a + r.pengeluaran, 0);
+            const sumberBulan = list.map(r => r.bulan);
             return `<section>${kopLaporan()}
-                <h3 class="judul">REKAP SANTRI TELADAN PEMBAYARAN SPP</h3>
-                <p class="sub">Periode : ${bulan || 'SELURUH BULAN'} &mdash; Penilaian: bayar tgl 1-5 (5 poin), 6-10 (3 poin), 11-20 (1 poin), bonus LUNAS (3 poin), tunggakan (-5 poin)</p>
+                <h3 class="judul">BUKU KAS UMUM (BKU) PENGELUARAN</h3>
+                 <p class="sub">${labelPeriodeCetak(bulan, sumberBulan)}</p>
                 <table>
-                    <tr><th>Peringkat</th><th>Nama Santri</th><th>Kelas</th><th>Bayar Tepat Waktu</th><th>Total Bayar</th><th>Poin</th></tr>
-                    ${list.map((s, n) => `<tr><td style="text-align:center">${n + 1}</td><td>${s.nama}</td><td style="text-align:center">${s.kelas || '-'}</td><td style="text-align:center">${s.tepat} / ${s.trx}</td><td class="num">${formatRupiah(s.total)}</td><td style="text-align:center;font-weight:bold">${s.poin}</td></tr>`).join('') || '<tr><td colspan="6" style="text-align:center">Belum ada data pembayaran</td></tr>'}
+                     <thead><tr><th>No</th><th>Bukti</th><th>Tanggal</th><th>Diserahkan</th><th>Penerima</th><th>Rincian</th><th>Keterangan</th><th>Bulan</th><th>Pengeluaran</th></tr></thead>
+                     <tbody>${list.map((r, n) => `<tr>
+                        <td style="text-align:center">${n + 1}</td><td>${r.bukti || '-'}</td><td>${r.tanggal || '-'}</td>
+                        <td>${r.diserahkan || '-'}</td><td>${r.penerima || '-'}</td><td>${r.rincian || '-'}</td>
+                        <td>${r.keterangan || '-'}</td><td>${r.bulan || '-'}</td><td class="num">${formatRupiah(r.pengeluaran)}</td>
+                     </tr>`).join('') || '<tr><td colspan="9" style="text-align:center">Tidak ada pengeluaran</td></tr>'}</tbody>
+                     <tfoot><tr class="tot"><td colspan="8">TOTAL PENGELUARAN</td><td class="num">${formatRupiah(total)}</td></tr></tfoot>
                 </table>
                 ${blokTtd()}</section>`;
         }
+
+        function cetakBKUTerpilih() {
+            const sel = document.getElementById('filter-bulan-bku');
+            const bulan = sel ? sel.value : '';
+            if (!bulan) { showToast("Data BKU belum tersedia."); return; }
+            cetakHTML('BKU Pengeluaran - ' + labelPeriodeCetak(bulan), htmlBKU(bulan));
+        }
+
+        function totalTunggakanSantri() {
+            return dataTunggakan.reduce((total, row) => {
+                const nama = getCleanName(row);
+                const nilai = parseNumeric(getColValue(row, ["TOTAL TUNGGAKAN", "Tunggakan"]));
+                return total + (nama && nilai > 0 ? nilai : 0);
+            }, 0);
+        }
+
+        function htmlBukuHutang(bulan) {
+            const list = bulan === SEMUA_BULAN ? dataHutang : dataHutang.filter(r => r.bulan === bulan);
+            const totalHutang = list.reduce((a, r) => a + r.jumlah, 0);
+            const totalBayar = list.reduce((a, r) => a + r.bayar, 0);
+            const sisaHutang = totalHutang - totalBayar;
+            const totalTunggakan = totalTunggakanSantri();
+            const selisih = totalTunggakan - sisaHutang;
+            const status = selisih >= 0 ? 'SURPLUS' : 'MINUS';
+            return `<section>${kopLaporan()}
+                <h3 class="judul">BUKU HUTANG YAYASAN</h3>
+                 <p class="sub">${labelPeriodeCetak(bulan, list.map(r => r.bulan))}</p>
+                <table>
+                     <thead><tr><th>No</th><th>Tanggal</th><th>Uraian</th><th>Hutang</th><th>Bayar</th><th>Jumlah</th><th>Sumber Dana</th><th>Ket</th></tr></thead>
+                     <tbody>${list.map((r, n) => `<tr>
+                        <td style="text-align:center">${n + 1}</td><td>${r.tanggal || '-'}</td><td>${r.uraian || '-'}</td>
+                        <td class="num">${formatRupiah(r.jumlah)}</td><td class="num">${formatRupiah(r.bayar)}</td>
+                        <td class="num">${r.sisa ? formatRupiah(r.sisa) : '-'}</td><td>${r.sumber || '-'}</td><td>${r.ket || '-'}</td>
+                     </tr>`).join('') || '<tr><td colspan="8" style="text-align:center">Tidak ada data hutang</td></tr>'}</tbody>
+                     <tfoot><tr class="tot"><td colspan="3">TOTAL</td><td class="num">${formatRupiah(totalHutang)}</td><td class="num">${formatRupiah(totalBayar)}</td><td colspan="3" class="num">SISA HUTANG: ${formatRupiah(sisaHutang)}</td></tr></tfoot>
+                </table>
+                <table>
+                     <thead><tr><th colspan="2">PERBANDINGAN HUTANG DAN TUNGGAKAN SANTRI</th></tr></thead>
+                     <tbody><tr><td>Sisa Hutang Yayasan</td><td class="num">${formatRupiah(sisaHutang)}</td></tr>
+                    <tr><td>Total Tunggakan Santri</td><td class="num">${formatRupiah(totalTunggakan)}</td></tr>
+                     <tr class="tot"><td>Kesimpulan: ${status}</td><td class="num">${formatRupiah(Math.abs(selisih))}</td></tr></tbody>
+                </table>
+                <p><b>Kesimpulan:</b> ${selisih >= 0
+                    ? 'Bila seluruh tunggakan santri tertagih, hutang yayasan dapat ditutup dan masih tersisa dana sebesar ' + formatRupiah(selisih) + '.'
+                    : 'Bila seluruh tunggakan santri tertagih, masih terdapat kekurangan dana sebesar ' + formatRupiah(Math.abs(selisih)) + ' untuk menutup hutang yayasan.'}</p>
+                ${blokTtd()}</section>`;
+        }
+
 
         function renderCetakBulanList() {
             const box = document.getElementById('cetak-bulan-list');
             if (!box) return;
-            const bulanList = daftarBulanKeuangan();
-            if (box.dataset.filled === String(bulanList.length) && bulanList.length) return;
+            const bulanList = [SEMUA_BULAN].concat(daftarBulanKeuangan());
+            if (box.dataset.filled === String(bulanList.length) && bulanList.length > 1) return;
             box.innerHTML = bulanList.map((b, i) => `
                 <label class="flex items-center gap-2 text-[11px] sm:text-xs">
-                    <input type="checkbox" class="cetak-bulan" value="${b}" ${i === 0 ? 'checked' : ''}> ${b}
+                    <input type="checkbox" class="cetak-bulan" value="${b}" ${i === 1 ? 'checked' : ''}> ${b}
                 </label>`).join('') || '<p class="text-xs text-gray-500">Data bulan belum tersedia.</p>';
             box.dataset.filled = String(bulanList.length);
         }
@@ -1129,29 +1434,47 @@
             const bulan = Array.from(document.querySelectorAll('.cetak-bulan:checked')).map(c => c.value)
                 .sort((a, b) => bulanSortKey(a) - bulanSortKey(b));
             if (!jenis.length) { showToast("Pilih minimal satu jenis laporan."); return; }
-            if ((jenis.includes('keuangan') || jenis.includes('teladan')) && !bulan.length) { showToast("Pilih minimal satu bulan."); return; }
+            if (jenis.some(j => ['keuangan', 'bku', 'hutang'].includes(j)) && !bulan.length) { showToast("Pilih minimal satu bulan."); return; }
 
             let isi = "";
             if (jenis.includes('pendapatan')) isi += htmlPendapatanTetap();
             if (jenis.includes('keuangan')) bulan.forEach(b => isi += htmlLaporanKeuangan(b));
+            if (jenis.includes('bku')) bulan.forEach(b => isi += htmlBKU(b));
+            if (jenis.includes('hutang')) bulan.forEach(b => isi += htmlBukuHutang(b));
             if (jenis.includes('tunggakan')) isi += htmlTunggakan();
-            if (jenis.includes('teladan')) bulan.forEach(b => isi += htmlTeladan(b));
             cetakHTML('Laporan Yayasan Huda Wan Nurul Qurani', isi);
         }
 
+        /* Salin dalam format tabel (TSV) agar rapi saat di-paste ke spreadsheet */
         function copyLaporanKeuangan() {
             const bulan = document.getElementById('filter-bulan-keuangan').value;
             if (!bulan) { showToast("Data belum tersedia."); return; }
             const d = hitungLaporan(bulan);
-            let t = `REKAPITULASI LAPORAN KEUANGAN\nYAYASAN HUDA WAN NURUL QUR'ANI\nPERIODE : ${bulan}\n\nA. PEMASUKAN\n`;
-            d.pemasukan.forEach((i, n) => t += `${n + 1}. ${i.label} : ${formatRupiah(i.nilai)}\n`);
-            t += `TOTAL : ${formatRupiah(d.totalMasuk)}\n\nB. PENGELUARAN\n`;
-            d.pengeluaran.forEach((i, n) => t += `${n + 1}. ${i.label} : ${formatRupiah(i.nilai)}\n`);
-            t += `TOTAL : ${formatRupiah(d.totalKeluar)}\n\nSISA SALDO : ${formatRupiah(d.sisa)}`;
+            const L = [];
+            L.push(["REKAPITULASI LAPORAN KEUANGAN"]);
+            L.push(["YAYASAN HUDA WAN NURUL QUR'ANI"]);
+            L.push(["PERIODE", bulan]);
+            L.push([]);
+            L.push(["NO", "URAIAN", "JUMLAH"]);
+            L.push(["A. PEMASUKAN"]);
+            d.pemasukan.forEach((i, n) => L.push([n + 1, i.label, i.nilai]));
+            L.push(["", "TOTAL PEMASUKAN", d.totalMasuk]);
+            L.push(["B. PENGELUARAN"]);
+            d.pengeluaran.forEach((i, n) => L.push([n + 1, i.label, i.nilai]));
+            L.push(["", "TOTAL PENGELUARAN", d.totalKeluar]);
+            L.push(["C. SISA SALDO"]);
+            L.push(["", "SISA SALDO", d.sisa]);
+            if (d.perBulan && d.perBulan.length > 1) {
+                L.push([]);
+                L.push(["REKAP SISA SALDO PER BULAN"]);
+                L.push(["BULAN", "PEMASUKAN", "PENGELUARAN", "SISA SALDO"]);
+                d.perBulan.forEach(p => L.push([p.bulan, p.totalMasuk, p.totalKeluar, p.sisa]));
+            }
+            const t = L.map(r => r.join("\t")).join("\n");
             const ta = document.createElement('textarea'); ta.value = t;
             ta.style.position = 'absolute'; ta.style.left = '-9999px';
             document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
-            showToast("Laporan keuangan disalin!");
+            showToast("Laporan disalin (siap paste ke spreadsheet)!");
         }
 
         /* Logic Data */
