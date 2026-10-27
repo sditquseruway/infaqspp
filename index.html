@@ -459,6 +459,40 @@
         let dataTunggakan = [];
         let dataPembayaran = [];
         let isAdminVerified = false;
+        let indexedTunggakan = [];
+        const paymentsByName = new Map();
+        const paymentTotalsByName = new Map();
+        const rupiahFormatter = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 });
+        let tunggakanRenderFrame = null;
+
+        function escapeSearchHtml(value) {
+            return String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+        }
+
+        function prepareSearchIndex() {
+            paymentsByName.clear();
+            paymentTotalsByName.clear();
+            dataPembayaran.forEach(row => {
+                const name = getCleanName(row).toLowerCase();
+                if (!name) return;
+                if (!paymentsByName.has(name)) paymentsByName.set(name, []);
+                paymentsByName.get(name).push(row);
+                paymentTotalsByName.set(name, (paymentTotalsByName.get(name) || 0) + parseNumeric(getColValue(row, ['PEMBAYARAN'])));
+            });
+            indexedTunggakan = dataTunggakan.map(row => {
+                const nama = getCleanName(row);
+                return { nama, searchName: nama.toLowerCase(), kelas: getColValue(row, ['Kelas']).trim(), totalTunggakan: parseNumeric(getColValue(row, ['TOTAL TUNGGAKAN'])), rawRow: row };
+            }).filter(item => item.nama && item.totalTunggakan > 0)
+                .sort((a, b) => b.totalTunggakan - a.totalTunggakan);
+        }
+
+        function scheduleTunggakanRender() {
+            if (tunggakanRenderFrame !== null) cancelAnimationFrame(tunggakanRenderFrame);
+            tunggakanRenderFrame = requestAnimationFrame(() => {
+                tunggakanRenderFrame = null;
+                renderTunggakanTable();
+            });
+        }
 
         function setupPWA() {
             try {
@@ -527,6 +561,7 @@
                 setLoader(92, 'Menyusun laporan...');
                 dataTunggakan = Papa.parse(csvTunggakan, { header: true, skipEmptyLines: true }).data;
                 dataPembayaran = Papa.parse(csvPembayaran, { header: true, skipEmptyLines: true }).data;
+                prepareSearchIndex();
 
                 processRecap();
                 populateKelasFilter();
@@ -552,13 +587,25 @@
                     document.getElementById('no-data-cari').classList.remove('hidden');
                 }
             });
-            document.getElementById('filter-kelas').addEventListener('change', renderTunggakanTable);
-            document.getElementById('search-tunggakan').addEventListener('input', renderTunggakanTable);
+            document.getElementById('filter-kelas').addEventListener('change', scheduleTunggakanRender);
+            document.getElementById('search-tunggakan').addEventListener('input', scheduleTunggakanRender);
+            const arrearsBody = document.getElementById('tbody-tunggakan');
+            arrearsBody.addEventListener('click', event => {
+                if (event.target.closest('a, button')) return;
+                const row = event.target.closest('tr[data-student-name]');
+                if (row) openModalDetail(row.dataset.studentName);
+            });
+            arrearsBody.addEventListener('keydown', event => {
+                if (event.key !== 'Enter' && event.key !== ' ') return;
+                const nameCell = event.target.closest('[data-open-student]');
+                const row = nameCell?.closest('tr[data-student-name]');
+                if (row) { event.preventDefault(); openModalDetail(row.dataset.studentName); }
+            });
         });
 
         /* Helpers */
         function formatRupiah(num) {
-            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num || 0);
+            return rupiahFormatter.format(num || 0);
         }
         function parseNumeric(str) {
             if(!str) return 0;
@@ -1507,29 +1554,22 @@
 
         function renderTunggakanTable() {
             const tbody = document.getElementById('tbody-tunggakan');
-            tbody.innerHTML = "";
             const filterVal = document.getElementById('filter-kelas').value;
             const searchVal = document.getElementById('search-tunggakan').value.toLowerCase().trim();
 
-            let validData = dataTunggakan.map(row => ({
-                nama: getCleanName(row),
-                kelas: getColValue(row, ["Kelas"]).trim(),
-                totalTunggakan: parseNumeric(getColValue(row, ["TOTAL TUNGGAKAN"])),
-                rawRow: row 
-            })).filter(item => {
-                if (!item.nama || item.totalTunggakan <= 0) return false;
+            const validData = indexedTunggakan.filter(item => {
                 if (filterVal !== 'ALL' && item.kelas !== filterVal) return false;
-                if (searchVal && !item.nama.toLowerCase().includes(searchVal)) return false;
+                if (searchVal && !item.searchName.includes(searchVal)) return false;
                 return true;
             });
 
-            validData.sort((a, b) => b.totalTunggakan - a.totalTunggakan);
-
             if(validData.length === 0) tbody.innerHTML = `<tr><td colspan="5" class="p-4 sm:p-6 text-center text-gray-500 text-xs sm:text-sm">Tidak ada santri menunggak ditemukan.</td></tr>`;
             else {
+                const fragment = document.createDocumentFragment();
                 validData.forEach((item, index) => {
                     const tr = document.createElement('tr');
-                    tr.className = "hover:bg-green-50 border-b border-gray-100";
+                    tr.className = "hover:bg-green-50 border-b border-gray-100 cursor-pointer";
+                    tr.dataset.studentName = item.nama;
                     
                     let phone = getColValue(item.rawRow, ["Nomor Hape", "No HP", "Telepon"]);
                     let waBtn = `<button disabled class="bg-gray-200 text-gray-400 mobile-btn rounded font-bold cursor-not-allowed">Kosong</button>`;
@@ -1544,13 +1584,14 @@
 
                     tr.innerHTML = `
                         <td class="px-2 py-2 sm:px-4 sm:py-3 text-center mobile-table-text text-gray-500">${index + 1}</td>
-                        <td class="px-2 py-2 sm:px-4 sm:py-3 font-semibold text-ygreen-700 hover:text-yyellow-500 cursor-pointer mobile-table-text" onclick="openModalDetail('${item.nama.replace(/'/g, "\\'")}')">${item.nama}</td>
-                        <td class="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-600 mobile-table-text hidden sm:table-cell">${item.kelas || '-'}</td>
+                        <td class="px-2 py-3 sm:px-4 font-semibold text-ygreen-700 hover:text-yyellow-500 cursor-pointer" role="button" tabindex="0" data-open-student aria-label="Lihat rincian ${escapeSearchHtml(item.nama)}">${escapeSearchHtml(item.nama)}</td>
+                        <td class="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-600 mobile-table-text hidden sm:table-cell">${escapeSearchHtml(item.kelas || '-')}</td>
                         <td class="px-2 py-2 sm:px-4 sm:py-3 text-right font-bold text-red-600 mobile-table-text">${formatRupiah(item.totalTunggakan)}</td>
                         <td class="px-2 py-2 sm:px-4 sm:py-3 text-center align-middle">${waBtn}</td>
                     `;
-                    tbody.appendChild(tr);
+                    fragment.appendChild(tr);
                 });
+                tbody.replaceChildren(fragment);
             }
         }
 
@@ -1586,9 +1627,7 @@
         }
 
         function getStudentTotalBayar(namaSiswa) {
-            let t = 0; const nl = namaSiswa.toLowerCase();
-            dataPembayaran.forEach(r => { if(getCleanName(r).toLowerCase() === nl) t += parseNumeric(getColValue(r, ["PEMBAYARAN"])); });
-            return t;
+            return paymentTotalsByName.get(namaSiswa.toLowerCase()) || 0;
         }
 
         function openModalDetail(namaSiswa) {
@@ -1596,7 +1635,7 @@
             tbody.innerHTML = ""; let counter = 1;
             const nl = namaSiswa.toLowerCase();
             
-            dataPembayaran.forEach(r => {
+            (paymentsByName.get(nl) || []).forEach(r => {
                 if(getCleanName(r).toLowerCase() === nl) {
                     // Ambil Data Rincian Sesuai Permintaan
                     const noBukti = getColValue(r, ["NO", "No"]) || counter++;
